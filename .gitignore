@@ -1,0 +1,14 @@
+node_modules
+dist
+.DS_Store
+*.tsbuildinfo
+coverage/
+*.png
+screenshots
+
+# LLM / agent working files — kept locally, never committed
+docs/superpowers/
+plans/
+.claude/
+*.local.json
+test_parser_edge.mjs

@@ -1,0 +1,19 @@
+{
+  "name": "mindmaply-workspace",
+  "private": true,
+  "version": "0.0.0",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @mindmaply/editor dev",
+    "build": "pnpm --filter mindmaply-core build && pnpm --filter @mindmaply/editor build",
+    "test": "pnpm --filter mindmaply-core test && pnpm --filter @mindmaply/editor test",
+    "changeset": "changeset",
+    "release": "pnpm --filter mindmaply-core build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.31.0"
+  }
+}
