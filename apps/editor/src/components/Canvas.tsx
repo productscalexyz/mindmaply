@@ -1,6 +1,5 @@
 import { useRef, useEffect, useCallback } from 'react'
 import { SAMPLES, type SampleId, type Direction } from '../samples'
-import SampleBar from './SampleBar'
 import ZoomCluster from './ZoomCluster'
 import { clampZoom } from '../zoom'
 
@@ -10,7 +9,6 @@ interface Props {
   onZoomChange: (z: number) => void
   sample: SampleId
   direction: Direction
-  onSampleChange: (id: SampleId) => void
   onShare: () => void
   onExport: () => void
 }
@@ -34,19 +32,29 @@ export default function Canvas({
   onZoomChange,
   sample,
   direction,
-  onSampleChange,
   onShare,
   onExport,
 }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null)
   const config = SAMPLES[sample]
 
-  // Auto-fit whenever SVG changes
+  // Auto-fit whenever SVG changes (edits, direction/sample/format switches)
   useEffect(() => {
     if (!svg || !canvasRef.current) return
     onZoomChange(computeFitZoom(svg, canvasRef.current))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [svg])
+
+  // Re-fit when the canvas itself resizes (window or panel-divider drag)
+  useEffect(() => {
+    const el = canvasRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => {
+      if (svg) onZoomChange(computeFitZoom(svg, el))
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [svg, onZoomChange])
 
   const handleFit = useCallback(() => {
     if (!canvasRef.current || !svg) return
@@ -59,7 +67,7 @@ export default function Canvas({
     if (!el) return
     function onWheel(e: WheelEvent) {
       const target = e.target as Element
-      if (target.closest('.zoom-cluster, .sample-bar, .canvas-actions, .canvas-info')) return
+      if (target.closest('.zoom-cluster, .canvas-actions, .canvas-info')) return
       e.preventDefault()
       onZoomChange(zoom + (e.deltaY > 0 ? -0.08 : 0.08))
     }
@@ -77,9 +85,6 @@ export default function Canvas({
           dangerouslySetInnerHTML={{ __html: svg }}
         />
       </div>
-
-      {/* top-left: sample tabs */}
-      <SampleBar active={sample} onChange={onSampleChange} />
 
       {/* top-right: actions */}
       <div className="canvas-actions">

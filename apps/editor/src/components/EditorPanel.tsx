@@ -1,26 +1,32 @@
 import { useCallback, useMemo, useRef } from 'react'
+import type { ValidationError } from 'mindmaply-core'
 import { SAMPLES, type SampleId, type Direction } from '../samples'
 import { highlight } from '../highlight'
+import SampleBar from './SampleBar'
 
 interface Props {
   sample: SampleId
+  onSampleChange: (id: SampleId) => void
   direction: Direction
   onDirectionChange: (d: Direction) => void
   source: string
   onSourceChange: (s: string) => void
   format: 'mermaid' | 'markdown'
   onFormatChange: (f: 'mermaid' | 'markdown') => void
+  errors: ValidationError[]
   width?: number
 }
 
 export default function EditorPanel({
   sample,
+  onSampleChange,
   direction,
   onDirectionChange,
   source,
   onSourceChange,
   format,
   onFormatChange,
+  errors,
   width,
 }: Props) {
   const config = SAMPLES[sample]
@@ -44,19 +50,10 @@ export default function EditorPanel({
     }
   }, [])
 
-  const filename = format === 'markdown' ? 'diagram.md' : 'diagram.mmd'
-
   return (
     <div className="editor" style={width != null ? { width } : undefined}>
       <div className="ep-header">
         <div className="fmt-tabs">
-          <button
-            className={`fmt-tab${format === 'mermaid' ? ' on' : ''}`}
-            aria-pressed={format === 'mermaid'}
-            onClick={() => onFormatChange('mermaid')}
-          >
-            Mermaid
-          </button>
           <button
             className={`fmt-tab${format === 'markdown' ? ' on' : ''}`}
             aria-pressed={format === 'markdown'}
@@ -64,12 +61,19 @@ export default function EditorPanel({
           >
             Markdown
           </button>
+          <button
+            className={`fmt-tab${format === 'mermaid' ? ' on' : ''}`}
+            aria-pressed={format === 'mermaid'}
+            onClick={() => onFormatChange('mermaid')}
+          >
+            Mermaid
+          </button>
         </div>
         <div
           className="dir-toggle"
           style={{
-            opacity: config.supportsDirection && format === 'mermaid' ? 1 : 0.35,
-            pointerEvents: config.supportsDirection && format === 'mermaid' ? 'auto' : 'none',
+            opacity: config.supportsDirection ? 1 : 0.35,
+            pointerEvents: config.supportsDirection ? 'auto' : 'none',
           }}
         >
           <button
@@ -111,12 +115,22 @@ export default function EditorPanel({
         />
       </div>
 
+      <SampleBar active={sample} onChange={onSampleChange} />
+
       <div className="ep-footer">
-        <span className="ep-stat-dot" />
-        <span className="ep-stat ep-stat-ok">valid syntax</span>
-        <span className="ep-stat" style={{ marginLeft: 'auto' }}>
-          {filename} · {config.statusInfo}
-        </span>
+        {errors.length === 0 ? (
+          <>
+            <span className="ep-stat-dot" />
+            <span className="ep-stat ep-stat-ok">valid syntax</span>
+          </>
+        ) : (
+          <>
+            <span className="ep-stat-dot err" />
+            <span className="ep-stat ep-stat-err" title={errors.map(e => `line ${e.line}: ${e.message}`).join('\n')}>
+              invalid syntax · line {errors[0].line}
+            </span>
+          </>
+        )}
       </div>
     </div>
   )

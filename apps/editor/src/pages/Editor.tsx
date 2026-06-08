@@ -6,6 +6,8 @@ import {
   parseMarkdown,
   toMarkdown,
   toMermaid,
+  validate,
+  type ValidationError,
 } from 'mindmaply-core'
 import { SAMPLES, getSampleSource, type SampleId, type Direction } from '../samples'
 import { clampZoom } from '../zoom'
@@ -23,32 +25,53 @@ export default function Editor() {
   const [shareOpen, setShareOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
   const [svg, setSvg] = useState('')
-  const [source, setSource] = useState(() => getSampleSource('org', 'TD'))
-  const [format, setFormat] = useState<Format>('mermaid')
+  // Markdown is the primary editing format — samples are stored as Mermaid, so convert on load
+  const [source, setSource] = useState(() => toMarkdown(parse(getSampleSource('org', 'TD'))))
+  const [format, setFormat] = useState<Format>('markdown')
+  const [errors, setErrors] = useState<ValidationError[]>([])
   const [panelWidth, setPanelWidth] = useState(() => Math.round(window.innerWidth * 0.27))
   const dragging = useRef(false)
 
   const setZoom = useCallback((z: number) => setZoomRaw(clampZoom(z)), [])
 
-  // Reset source and format when sample or direction changes
-  useEffect(() => {
-    setSource(getSampleSource(sample, direction))
-    setFormat('mermaid')
-  }, [sample, direction])
+  // Load a sample's source, keeping the current format
+  const handleSampleChange = useCallback((id: SampleId) => {
+    setSample(id)
+    const src = getSampleSource(id, direction)
+    setSource(format === 'markdown' ? toMarkdown(parse(src)) : src)
+  }, [direction, format])
 
-  // Re-render diagram whenever source or format changes
+  // Change direction without discarding user edits: in Mermaid mode the
+  // `flowchart TD|LR` header is the source of truth, so rewrite just that
+  // line; in Markdown mode direction is a render option (no source change).
+  const handleDirectionChange = useCallback((d: Direction) => {
+    setDirection(d)
+    if (format === 'mermaid') {
+      setSource((prev: string) =>
+        /^(\s*)flowchart\s+\w+/m.test(prev)
+          ? prev.replace(/^(\s*)flowchart\s+\w+/m, `$1flowchart ${d}`)
+          : `flowchart ${d}\n${prev}`
+      )
+    }
+  }, [format])
+
+  // Re-render diagram and re-validate whenever source, format, or direction changes
   useEffect(() => {
     const config = SAMPLES[sample]
+    const result = validate(source, format)
     try {
-      const result =
+      const svgStr =
         format === 'markdown'
-          ? renderMarkdown(source)
+          ? renderMarkdown(source, { layout: config.layout, direction })
           : render(source, { layout: config.layout })
-      setSvg(result)
+      setSvg(svgStr)
+      setErrors(result.errors)
     } catch (err) {
-      console.error('mindmaply-core render error:', err)
+      // Keep the last good diagram; surface the render error in the status bar
+      const message = err instanceof Error ? err.message : String(err)
+      setErrors(result.valid ? [{ line: 1, message }] : result.errors)
     }
-  }, [source, sample, format])
+  }, [source, sample, format, direction])
 
   // Keyboard zoom shortcuts
   useEffect(() => {
@@ -67,14 +90,15 @@ export default function Editor() {
     if (newFormat === format) return
     try {
       const ast = format === 'mermaid' ? parse(source) : parseMarkdown(source)
-      const converted = newFormat === 'markdown' ? toMarkdown(ast) : toMermaid(ast)
+      const converted =
+        newFormat === 'markdown' ? toMarkdown(ast) : toMermaid(ast, direction)
       setFormat(newFormat)
       setSource(converted)
     } catch {
       // If conversion fails, just switch the format label without changing source
       setFormat(newFormat)
     }
-  }, [format, source])
+  }, [format, source, direction])
 
   const onResizeStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -106,12 +130,14 @@ export default function Editor() {
         <div className="body">
           <EditorPanel
             sample={sample}
+            onSampleChange={handleSampleChange}
             direction={direction}
-            onDirectionChange={setDirection}
+            onDirectionChange={handleDirectionChange}
             source={source}
             onSourceChange={setSource}
             format={format}
             onFormatChange={handleFormatChange}
+            errors={errors}
             width={panelWidth}
           />
           <div className="resize-handle" onMouseDown={onResizeStart} />
@@ -121,7 +147,6 @@ export default function Editor() {
             onZoomChange={setZoom}
             sample={sample}
             direction={direction}
-            onSampleChange={setSample}
             onShare={() => setShareOpen(true)}
             onExport={() => setExportOpen(true)}
           />

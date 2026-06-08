@@ -10,6 +10,7 @@ interface Props {
 export default function SampleBar({ active, onChange }: Props) {
   return (
     <div className="sample-bar">
+      <span className="sample-label">Eg</span>
       {SAMPLE_IDS.map((id) => (
         <button
           key={id}
