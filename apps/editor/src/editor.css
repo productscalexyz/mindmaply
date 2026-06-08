@@ -160,8 +160,11 @@ body {
 
 /* ─── canvas ──────────────────────────────────────────────── */
 .canvas {
-  flex:1; position:relative; overflow:hidden; background:var(--cv);
+  flex:1; position:relative; overflow:hidden; background:var(--cv); cursor:grab;
 }
+.canvas.is-panning { cursor:grabbing; }
+/* keep the real cursor on the floating controls */
+.canvas .zoom-cluster, .canvas .canvas-actions, .canvas .canvas-info { cursor:default; }
 .canvas::before {
   content:''; position:absolute; inset:0; pointer-events:none;
   background-image:radial-gradient(circle, rgba(0,0,0,.048) 1px, transparent 1px);
