@@ -74,8 +74,8 @@ export default function Landing() {
       </nav>
 
       <header className="landing-hero">
-        <h1>Beautiful diagrams,<br />instantly.</h1>
-        <p>Markdown or Mermaid to diagrams, instantly.</p>
+        <h1>From Markdown &amp; Mermaid<br />to beautiful open source diagrams.</h1>
+        <p>Plain text in, presentation-quality diagrams out — instantly.</p>
         <Link to="/editor" className="landing-cta">Open Editor →</Link>
       </header>
 
