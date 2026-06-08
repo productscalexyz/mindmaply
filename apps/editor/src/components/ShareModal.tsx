@@ -1,15 +1,12 @@
 import { useState } from 'react'
 
 interface Props {
+  url: string
   onClose: () => void
 }
 
-type ShareType = 'view' | 'edit'
-
-export default function ShareModal({ onClose }: Props) {
-  const [type, setType] = useState<ShareType>('view')
+export default function ShareModal({ url, onClose }: Props) {
   const [copied, setCopied] = useState(false)
-  const url = 'https://mindmaply.app/d/kx9p2m'
 
   function copyUrl() {
     navigator.clipboard?.writeText(url)
@@ -25,23 +22,8 @@ export default function ShareModal({ onClose }: Props) {
     <div className="overlay" onClick={handleOverlayClick}>
       <div className="modal">
         <div className="modal-hd">Share diagram</div>
-        <div className="modal-sub">Anyone with the link can access this diagram.</div>
-
-        <div className="share-type">
-          <div
-            className={`st-opt${type === 'view' ? ' on' : ''}`}
-            onClick={() => setType('view')}
-          >
-            <div className="st-title">View only</div>
-            <div className="st-desc">Viewers can't edit</div>
-          </div>
-          <div
-            className={`st-opt${type === 'edit' ? ' on' : ''}`}
-            onClick={() => setType('edit')}
-          >
-            <div className="st-title">Can edit</div>
-            <div className="st-desc">Opens in editor</div>
-          </div>
+        <div className="modal-sub">
+          The whole diagram is encoded in this link — anyone who opens it can view and edit it.
         </div>
 
         <div className="url-row">

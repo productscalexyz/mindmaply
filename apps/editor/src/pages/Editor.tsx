@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 import {
   render,
   renderMarkdown,
@@ -15,22 +15,36 @@ import EditorPanel from '../components/EditorPanel'
 import Canvas from '../components/Canvas'
 import ShareModal from '../components/ShareModal'
 import ExportModal from '../components/ExportModal'
+import { readSharedFromUrl, buildShareUrl } from '../share'
 
 type Format = 'mermaid' | 'markdown'
 
 export default function Editor() {
-  const [sample, setSample] = useState<SampleId>('org')
-  const [direction, setDirection] = useState<Direction>('TD')
+  // If the page was opened from a shared link (#/editor?d=...), seed the
+  // initial state from it. Read once at mount; bad/garbled params -> null.
+  const shared = useRef(readSharedFromUrl()).current
+
+  const [sample, setSample] = useState<SampleId>(shared?.sample ?? 'org')
+  const [direction, setDirection] = useState<Direction>(shared?.direction ?? 'TD')
   const [zoom, setZoomRaw] = useState(1)
   const [shareOpen, setShareOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
   const [svg, setSvg] = useState('')
   // Markdown is the primary editing format — samples are stored as Mermaid, so convert on load
-  const [source, setSource] = useState(() => toMarkdown(parse(getSampleSource('org', 'TD'))))
-  const [format, setFormat] = useState<Format>('markdown')
+  const [source, setSource] = useState(
+    () => shared?.source ?? toMarkdown(parse(getSampleSource('org', 'TD')))
+  )
+  const [format, setFormat] = useState<Format>(shared?.format ?? 'markdown')
   const [errors, setErrors] = useState<ValidationError[]>([])
   const [panelWidth, setPanelWidth] = useState(() => Math.round(window.innerWidth * 0.27))
   const dragging = useRef(false)
+
+  // Live shareable link encoding the current editor state.
+  const shareUrl = useMemo(
+    () => buildShareUrl({ v: 1, source, format, direction, sample }),
+    [source, format, direction, sample]
+  )
 
   const setZoom = useCallback((z: number) => setZoomRaw(clampZoom(z)), [])
 
@@ -138,9 +152,28 @@ export default function Editor() {
             format={format}
             onFormatChange={handleFormatChange}
             errors={errors}
-            width={panelWidth}
+            width={collapsed ? 0 : panelWidth}
           />
-          <div className="resize-handle" onMouseDown={onResizeStart} />
+          {!collapsed && (
+            <div className="resize-handle" onMouseDown={onResizeStart}>
+              <button
+                className="collapse-btn"
+                onClick={() => setCollapsed(true)}
+                aria-label="Hide editor"
+              >
+                «
+              </button>
+            </div>
+          )}
+          {collapsed && (
+            <button
+              className="expand-tab"
+              onClick={() => setCollapsed(false)}
+              aria-label="Show editor"
+            >
+              »
+            </button>
+          )}
           <Canvas
             svg={svg}
             zoom={zoom}
@@ -152,7 +185,7 @@ export default function Editor() {
           />
         </div>
       </div>
-      {shareOpen && <ShareModal onClose={() => setShareOpen(false)} />}
+      {shareOpen && <ShareModal url={shareUrl} onClose={() => setShareOpen(false)} />}
       {exportOpen && (
         <ExportModal
           svg={svg}
