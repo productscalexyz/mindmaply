@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect, useCallback, useState } from 'react'
 import { SAMPLES, type SampleId, type Direction } from '../samples'
 import ZoomCluster from './ZoomCluster'
 import { clampZoom } from '../zoom'
@@ -38,9 +38,15 @@ export default function Canvas({
   const canvasRef = useRef<HTMLDivElement>(null)
   const config = SAMPLES[sample]
 
+  // Pan offset (screen px) applied before the zoom scale; lets the user
+  // click-drag the diagram around the canvas.
+  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const [dragging, setDragging] = useState(false)
+
   // Auto-fit whenever SVG changes (edits, direction/sample/format switches)
   useEffect(() => {
     if (!svg || !canvasRef.current) return
+    setPan({ x: 0, y: 0 })
     onZoomChange(computeFitZoom(svg, canvasRef.current))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [svg])
@@ -58,8 +64,34 @@ export default function Canvas({
 
   const handleFit = useCallback(() => {
     if (!canvasRef.current || !svg) return
+    setPan({ x: 0, y: 0 })
     onZoomChange(computeFitZoom(svg, canvasRef.current))
   }, [svg, onZoomChange])
+
+  // Click-drag panning. Ignore drags that start on the floating controls so
+  // their buttons keep working.
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    if (e.button !== 0) return
+    const target = e.target as Element
+    if (target.closest('.zoom-cluster, .canvas-actions, .canvas-info')) return
+    e.preventDefault()
+    const startX = e.clientX
+    const startY = e.clientY
+    const origin = { ...pan }
+    setDragging(true)
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+
+    const move = (ev: PointerEvent) => {
+      setPan({ x: origin.x + (ev.clientX - startX), y: origin.y + (ev.clientY - startY) })
+    }
+    const up = () => {
+      setDragging(false)
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }, [pan])
 
   // Scroll-wheel zoom
   useEffect(() => {
@@ -76,12 +108,19 @@ export default function Canvas({
   }, [zoom, onZoomChange])
 
   return (
-    <div className="canvas" ref={canvasRef}>
-      {/* zoomable diagram */}
+    <div
+      className={`canvas${dragging ? ' is-panning' : ''}`}
+      ref={canvasRef}
+      onPointerDown={onPointerDown}
+    >
+      {/* zoomable + pannable diagram */}
       <div className="diagram-viewport">
         <div
           className="diagram-inner"
-          style={{ transform: `scale(${zoom})` }}
+          style={{
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            transition: dragging ? 'none' : undefined,
+          }}
           dangerouslySetInnerHTML={{ __html: svg }}
         />
       </div>
