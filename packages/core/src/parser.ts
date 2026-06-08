@@ -24,6 +24,17 @@ export interface ParsedAST {
   styles: Map<string, ParsedStyle>
 }
 
+export interface ValidationError {
+  /** 1-based line number in the source */
+  line: number
+  message: string
+}
+
+export interface ValidationResult {
+  valid: boolean
+  errors: ValidationError[]
+}
+
 // Matches: id["label"]
 const QUOTED_RECT_RE = /^(\w+)\["([^"]+)"\]$/
 // Matches: id((label))
@@ -38,6 +49,8 @@ const EDGE_LINE_RE = /^(.+?)\s*-->\s*(.+)$/
 const STYLE_LINE_RE = /^style\s+(\w+)\s+(.+)$/
 // Matches: %%{init: {...}}%%
 const INIT_RE = /%%\{init:\s*(\{[\s\S]*?\})\s*\}%%/
+// Matches: flowchart TD / flowchart LR (TB is Mermaid's alias for TD)
+const FLOWCHART_RE = /^flowchart\s+(\w+)$/i
 
 function parseNodeToken(token: string): ParsedNode | null {
   const t = token.trim()
@@ -128,4 +141,66 @@ export function parse(source: string): ParsedAST {
   }
 
   return ast
+}
+
+/**
+ * Lint a Mermaid flowchart source line by line, using the same patterns
+ * `parse()` accepts. Unlike `parse()` (which silently skips unrecognized
+ * lines so rendering stays best-effort), this reports every line that
+ * would be ignored, plus structural problems like a missing root node.
+ */
+export function validateMermaid(source: string): ValidationResult {
+  const errors: ValidationError[] = []
+  const nodes = new Set<string>()
+  const hasIncoming = new Set<string>()
+
+  const lines = source.split('\n')
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim()
+    const lineNo = i + 1
+
+    if (!line) continue
+    if (line.startsWith('%%')) continue
+    if (/^flowchart\s/i.test(line)) {
+      if (!FLOWCHART_RE.test(line)) {
+        errors.push({ line: lineNo, message: `invalid flowchart header: "${line}"` })
+      }
+      continue
+    }
+    if (STYLE_LINE_RE.test(line)) continue
+
+    const edgeMatch = line.match(EDGE_LINE_RE)
+    if (edgeMatch) {
+      const fromNode = parseNodeToken(edgeMatch[1])
+      const toNode = parseNodeToken(edgeMatch[2])
+      if (!fromNode) {
+        errors.push({ line: lineNo, message: `invalid edge source: "${edgeMatch[1].trim()}"` })
+      }
+      if (!toNode) {
+        errors.push({ line: lineNo, message: `invalid edge target: "${edgeMatch[2].trim()}"` })
+      }
+      if (fromNode && toNode) {
+        nodes.add(fromNode.id)
+        nodes.add(toNode.id)
+        hasIncoming.add(toNode.id)
+      }
+      continue
+    }
+
+    const node = parseNodeToken(line)
+    if (node) {
+      nodes.add(node.id)
+      continue
+    }
+
+    errors.push({ line: lineNo, message: `unrecognized syntax: "${line}"` })
+  }
+
+  if (nodes.size === 0) {
+    errors.push({ line: 1, message: 'no nodes defined' })
+  } else if (![...nodes].some(id => !hasIncoming.has(id))) {
+    errors.push({ line: 1, message: 'no root node — every node has an incoming edge' })
+  }
+
+  return { valid: errors.length === 0, errors }
 }

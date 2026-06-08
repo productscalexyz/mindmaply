@@ -47,14 +47,17 @@ export function toMarkdown(ast: ParsedAST): string {
 }
 
 /**
- * Serialize a ParsedAST to Mermaid flowchart LR syntax.
+ * Serialize a ParsedAST to Mermaid flowchart syntax.
  * Style directives are not preserved (lossy for Mermaid→Markdown→Mermaid).
+ *
+ * @param direction Flowchart direction for the header. Defaults to the
+ *                  AST's own direction, falling back to 'LR'.
  */
-export function toMermaid(ast: ParsedAST): string {
+export function toMermaid(ast: ParsedAST, direction?: 'TD' | 'LR'): string {
   const rootId = findRoot(ast)
   if (!rootId) return ''
 
-  const lines = ['flowchart LR']
+  const lines = [`flowchart ${direction ?? ast.direction ?? 'LR'}`]
 
   // BFS from root for consistent declaration order
   const order: string[] = []

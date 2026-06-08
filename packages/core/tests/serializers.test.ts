@@ -71,6 +71,17 @@ describe('toMermaid()', () => {
     expect(toMermaid(parseMarkdown(''))).toBe('')
   })
 
+  it('emits the requested direction in the header', () => {
+    const ast = parseMarkdown('# Root\n## Branch A')
+    expect(toMermaid(ast, 'TD')).toMatch(/^flowchart TD/)
+    expect(toMermaid(ast, 'LR')).toMatch(/^flowchart LR/)
+  })
+
+  it("falls back to the AST's own direction", () => {
+    const ast = parse('flowchart TD\n  A["Root"]\n  A --> B["Child"]')
+    expect(toMermaid(ast)).toMatch(/^flowchart TD/)
+  })
+
   it('drops style directives through mermaid→markdown→mermaid round-trip', () => {
     const src = 'flowchart LR\n  root["Root"]\n  root --> a["Branch"]\n  style root fill:#ff0000'
     const mmd = toMermaid(parseMarkdown(toMarkdown(parse(src))))

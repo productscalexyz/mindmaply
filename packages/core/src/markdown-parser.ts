@@ -1,4 +1,9 @@
-import type { ParsedAST } from './parser'
+import type { ParsedAST, ValidationError, ValidationResult } from './parser'
+
+// Matches: # Heading … ###### Heading
+const HEADING_RE = /^(#{1,6})\s+(.+)$/
+// Matches: - item / * item / + item (any indent)
+const BULLET_RE = /^(\s*)[-*+]\s+(.+)$/
 
 function slugify(label: string, counter: number): string {
   const base = label
@@ -57,7 +62,7 @@ export function parseMarkdown(source: string): ParsedAST {
   }
 
   for (const raw of source.split('\n')) {
-    const headingMatch = raw.match(/^(#{1,6})\s+(.+)$/)
+    const headingMatch = raw.match(HEADING_RE)
     if (headingMatch) {
       const level = headingMatch[1].length
       const label = headingMatch[2].trim()
@@ -68,7 +73,7 @@ export function parseMarkdown(source: string): ParsedAST {
       continue
     }
 
-    const bulletMatch = raw.match(/^(\s*)[-*+]\s+(.+)$/)
+    const bulletMatch = raw.match(BULLET_RE)
     if (bulletMatch) {
       // Normalise tabs to 2 spaces so tab-indented bullets nest correctly
       const indent = bulletMatch[1].replace(/\t/g, '  ').length
@@ -82,4 +87,35 @@ export function parseMarkdown(source: string): ParsedAST {
   }
 
   return ast
+}
+
+/**
+ * Lint a Markdown heading/bullet source line by line, using the same
+ * patterns `parseMarkdown()` accepts. Reports any non-empty line that is
+ * neither a heading nor a bullet (which the parser would silently skip),
+ * plus an empty document.
+ */
+export function validateMarkdownSource(source: string): ValidationResult {
+  const errors: ValidationError[] = []
+  let nodeCount = 0
+
+  const lines = source.split('\n')
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i]
+    if (!raw.trim()) continue
+    if (HEADING_RE.test(raw) || BULLET_RE.test(raw)) {
+      nodeCount++
+      continue
+    }
+    errors.push({
+      line: i + 1,
+      message: `not a heading or bullet: "${raw.trim()}"`,
+    })
+  }
+
+  if (nodeCount === 0) {
+    errors.push({ line: 1, message: 'no nodes defined' })
+  }
+
+  return { valid: errors.length === 0, errors }
 }

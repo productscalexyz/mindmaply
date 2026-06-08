@@ -1,5 +1,6 @@
-import { parse } from './parser'
-import { parseMarkdown } from './markdown-parser'
+import { parse, validateMermaid } from './parser'
+import { parseMarkdown, validateMarkdownSource } from './markdown-parser'
+import type { ValidationResult } from './parser'
 import { toMarkdown, toMermaid } from './serializers'
 import { buildTree } from './tree'
 import { computeOrthogonalLayout } from './layout/orthogonal'
@@ -54,10 +55,19 @@ export function renderMarkdown(source: string, options: RenderOptions = {}): str
   return renderSVG(layoutRoot, { layout: layoutMode, direction, padding: options.padding })
 }
 
+/**
+ * Lint a source string in the given format without rendering it.
+ * Reports every line the parser would silently skip, with line numbers —
+ * rendering itself stays best-effort so the last good diagram persists.
+ */
+export function validate(source: string, format: 'mermaid' | 'markdown'): ValidationResult {
+  return format === 'markdown' ? validateMarkdownSource(source) : validateMermaid(source)
+}
+
 // Named exports for editor format switching
 export { parse, parseMarkdown, toMarkdown, toMermaid }
 
 // Re-export types for consumers
-export type { ParsedAST } from './parser'
+export type { ParsedAST, ValidationError, ValidationResult } from './parser'
 export type { TreeNode, ResolvedStyle } from './tree'
 export type { LayoutNode } from './layout/types'
