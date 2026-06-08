@@ -38,46 +38,67 @@ function highlightMarkdownLine(raw: string): string {
   return esc(raw)
 }
 
-function highlightLine(raw: string): string {
-  let line = esc(raw)
+// One alternation, applied to the RAW line in a single pass. Sequential
+// .replace() calls over already-highlighted HTML corrupt the markup (e.g.
+// the quoted-label regex matching the "ar" class attribute of an injected
+// arrow span), which desyncs the visible text from the textarea and breaks
+// caret alignment. Tokenizing the raw string once keeps the rendered text
+// char-for-char identical to the source.
+const MERMAID_TOKEN_RE = /-->(\|[^|]*\|)?|"[^"]*"|[A-Za-z_][A-Za-z0-9_]*(?=[\[({])/g
 
+function highlightLine(raw: string): string {
   // comments (lines starting with %%)
-  if (/^\s*%%/.test(raw)) return `<span class="cmt">${line}</span>`
+  if (/^\s*%%/.test(raw)) return `<span class="cmt">${esc(raw)}</span>`
 
   // classDef lines
-  if (/^\s*classDef/.test(raw)) {
-    return line.replace(/(classDef\s+\w+)(\s+)(.*)/, (_, def, sp, rest) =>
-      `<span class="cls">${def}</span>${sp}<span class="str">${rest}</span>`
+  const classDefMatch = raw.match(/^(\s*)(classDef\s+\w+)(\s+)(.*)$/)
+  if (classDefMatch) {
+    return (
+      classDefMatch[1] +
+      `<span class="cls">${esc(classDefMatch[2])}</span>` +
+      classDefMatch[3] +
+      `<span class="str">${esc(classDefMatch[4])}</span>`
     )
   }
 
   // class assignment lines
-  if (/^\s*class\s/.test(raw)) {
-    return line.replace(/(class\s+)(.*)/, (_, kw, rest) =>
-      `<span class="dir">${kw}${rest}</span>`
+  const classMatch = raw.match(/^(\s*)(class\s.*)$/)
+  if (classMatch) return classMatch[1] + `<span class="dir">${esc(classMatch[2])}</span>`
+
+  // flowchart/graph keyword + direction
+  const headerMatch = raw.match(/^(\s*)(flowchart|graph)(\s+)(TD|LR|TB|RL)(.*)$/)
+  if (headerMatch) {
+    return (
+      headerMatch[1] +
+      `<span class="kw">${headerMatch[2]}</span>` +
+      headerMatch[3] +
+      `<span class="acc">${headerMatch[4]}</span>` +
+      esc(headerMatch[5])
     )
   }
 
-  // node labels: "text" in quotes — must run FIRST, before any spans are
-  // injected, or it matches the quotes inside class="..." attributes
-  line = line.replace(/"([^"]+)"/g, `"<span class="str">$1</span>"`)
-
-  // flowchart/graph keyword + direction
-  line = line.replace(
-    /^(\s*)(flowchart|graph)(\s+)(TD|LR|TB|RL)/,
-    (_, indent, kw, sp, dir) =>
-      `${indent}<span class="kw">${kw}</span>${sp}<span class="acc">${dir}</span>`
-  )
-
-  // arrows (already HTML-escaped as --&gt;)
-  line = line.replace(/--&gt;(\|([^|]+)\|)?/g, (_, label, inner) =>
-    inner
-      ? `<span class="ar">--&gt;|</span><span class="str">${inner}</span><span class="ar">|</span>`
-      : `<span class="ar">--&gt;</span>`
-  )
-
-  // node IDs before [ or ( or {
-  line = line.replace(/\b([A-Za-z_][A-Za-z0-9_]*)(?=[\[({])/g, `<span class="nd">$1</span>`)
-
-  return line
+  // node/edge lines: arrows, quoted labels, node IDs before [ ( {
+  let out = ''
+  let last = 0
+  for (const m of raw.matchAll(MERMAID_TOKEN_RE)) {
+    out += esc(raw.slice(last, m.index))
+    const tok = m[0]
+    if (tok.startsWith('-->')) {
+      if (m[1]) {
+        out +=
+          `<span class="ar">--&gt;|</span>` +
+          `<span class="str">${esc(m[1].slice(1, -1))}</span>` +
+          `<span class="ar">|</span>`
+      } else {
+        out += `<span class="ar">--&gt;</span>`
+      }
+    } else if (tok.startsWith('"')) {
+      out += `"<span class="str">${esc(tok.slice(1, -1))}</span>"`
+    } else {
+      out += `<span class="nd">${esc(tok)}</span>`
+    }
+    last = m.index + tok.length
+  }
+  out += esc(raw.slice(last))
+  return out
 }
