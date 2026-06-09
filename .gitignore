@@ -4,6 +4,11 @@ dist
 *.tsbuildinfo
 coverage/
 *.png
+# but do commit the static brand / social-share images
+!apps/editor/public/og.png
+!apps/editor/public/apple-touch-icon.png
+!apps/editor/public/icon-192.png
+!apps/editor/public/icon-512.png
 screenshots
 
 # LLM / agent working files — kept locally, never committed

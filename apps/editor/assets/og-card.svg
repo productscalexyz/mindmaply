@@ -1,0 +1,51 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Canvas -->
+  <rect width="1200" height="630" fill="#F4F5F7"/>
+
+  <!-- White panel -->
+  <rect x="40" y="40" width="1120" height="550" rx="28" fill="#FFFFFF" stroke="#E6E8EC" stroke-width="1.5"/>
+
+  <!-- Subtle dot grid (decorative) -->
+  <g fill="#E2E8F0">
+    <circle cx="980" cy="120" r="3"/>
+    <circle cx="1030" cy="120" r="3"/>
+    <circle cx="1080" cy="120" r="3"/>
+    <circle cx="980" cy="170" r="3"/>
+    <circle cx="1030" cy="170" r="3"/>
+    <circle cx="1080" cy="170" r="3"/>
+    <circle cx="980" cy="220" r="3"/>
+    <circle cx="1030" cy="220" r="3"/>
+    <circle cx="1080" cy="220" r="3"/>
+  </g>
+
+  <!-- Decorative mini node-graph, top-right -->
+  <g stroke-width="3" stroke-linecap="round">
+    <line x1="930" y1="170" x2="1010" y2="120" stroke="#CBD5E1"/>
+    <line x1="930" y1="170" x2="1010" y2="220" stroke="#CBD5E1"/>
+    <line x1="1010" y1="120" x2="1090" y2="120" stroke="#CBD5E1"/>
+    <line x1="1010" y1="220" x2="1090" y2="220" stroke="#CBD5E1"/>
+  </g>
+  <g>
+    <circle cx="930" cy="170" r="14" fill="#ec5b01"/>
+    <circle cx="1010" cy="120" r="11" fill="#4B96E6"/>
+    <circle cx="1010" cy="220" r="11" fill="#55A996"/>
+    <circle cx="1090" cy="120" r="9" fill="#B355D0"/>
+    <circle cx="1090" cy="220" r="9" fill="#EBB94A"/>
+  </g>
+
+  <!-- Wordmark -->
+  <circle cx="116" cy="146" r="11" fill="#ec5b01"/>
+  <text x="138" y="160" font-family="Inter" font-weight="800" font-size="42" letter-spacing="-1" fill="#12141b">mindmaply</text>
+
+  <!-- Headline -->
+  <g font-family="Inter" font-weight="800" font-size="62" letter-spacing="-1.5" fill="#1E293B">
+    <text x="104" y="320">From Markdown &amp; Mermaid</text>
+    <text x="104" y="398">to <tspan fill="#ec5b01">beautiful</tspan> open-source</text>
+    <text x="104" y="476">diagrams.</text>
+  </g>
+
+  <!-- Footer -->
+  <rect x="104" y="528" width="44" height="5" rx="2.5" fill="#ec5b01"/>
+  <text x="104" y="556" font-family="Inter" font-weight="600" font-size="28" letter-spacing="0" fill="#475569">mindmaply.app</text>
+  <text x="1056" y="556" text-anchor="end" font-family="Inter" font-weight="600" font-size="24" letter-spacing="0" fill="#94A3B8">Open source &#183; MIT</text>
+</svg>
