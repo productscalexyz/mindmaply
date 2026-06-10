@@ -566,8 +566,12 @@ body {
 }
 
 /* ─── Docs Page ──────────────────────────────────────────── */
+/* Own scroll context: body{overflow:hidden} never scrolls, so the page does */
 .docs-page {
-  min-height: 100vh;
+  flex: 1;
+  min-height: 0;
+  height: 100vh;
+  overflow-y: auto;
   background: var(--cv);
   font-family: var(--f);
 }
@@ -734,6 +738,9 @@ body {
   border-radius: 10px;
   overflow: hidden;
   margin: -6px 0 22px;
+  /* matches the default theme canvasBg, so the letterbox around a
+     max-height-scaled SVG blends into the rendered canvas */
+  background: var(--cv);
 }
 .docs-example svg {
   display: block;
