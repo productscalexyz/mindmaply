@@ -704,6 +704,20 @@ body {
   overflow-x: auto;
 }
 
+/* live-rendered example embedded under a code block */
+.docs-example {
+  border: 1px solid var(--bd2);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: -6px 0 22px;
+}
+.docs-example svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 380px;
+}
+
 .docs-code-block pre {
   margin: 0;
   font-family: var(--fm);

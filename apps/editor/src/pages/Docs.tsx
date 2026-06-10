@@ -1,7 +1,35 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { render, renderMarkdown } from 'mindmaply-core'
 import { highlight } from '../highlight'
 import { COLOR_SWATCHES, NAV_SECTIONS, SNIPPETS } from '../docs-content'
+
+// A doc snippet rendered live by the real engine, embedded under its code
+// block. Snippets are self-contained (config travels in the source), so what
+// you see is exactly what that source produces.
+function Example({ source, format = 'mermaid' }: { source: string; format?: 'mermaid' | 'markdown' }) {
+  const svg = useMemo(() => {
+    try {
+      return format === 'markdown' ? renderMarkdown(source) : render(source)
+    } catch {
+      return ''
+    }
+  }, [source, format])
+  if (!svg) return null
+  return <div className="docs-example" dangerouslySetInnerHTML={{ __html: svg }} />
+}
+
+function Snippet({ source, format = 'mermaid', label }: { source: string; format?: 'mermaid' | 'markdown'; label?: string }) {
+  return (
+    <>
+      {label && <div className="docs-code-label">{label}</div>}
+      <div className="docs-code-block">
+        <pre dangerouslySetInnerHTML={{ __html: highlight(source, format) }} />
+      </div>
+      <Example source={source} format={format} />
+    </>
+  )
+}
 
 export default function Docs() {
   const [active, setActive] = useState('overview')
@@ -41,21 +69,18 @@ export default function Docs() {
           <section className="docs-section" id="overview">
             <h1 className="docs-h1">Syntax Reference</h1>
             <p className="docs-tagline">
-              mindmaply renders standard Mermaid <code>flowchart</code> syntax with an
-              opinionated visual layer. You write Mermaid — we apply the styling.
-              For the complete syntax reference, see the{' '}
-              <a
-                className="docs-link"
-                href="https://mermaid.js.org/syntax/flowchart.html"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Mermaid flowchart docs ↗
-              </a>.
+              mindmaply draws diagrams from text. Two languages are supported —
+              Mermaid (<code>flowchart</code> and <code>mindmap</code> grammars) and
+              Markdown outlines — and two diagram types: <strong>flowchart</strong> and{' '}
+              <strong>mindmap</strong>. The language never decides the diagram type, and
+              neither decides how it renders: direction, edge style, and theme are
+              always configurable. Every example below is rendered live by the real
+              engine — the drawing under each code block is exactly what that source
+              produces.
             </p>
           </section>
 
-          {/* ── Layouts ── */}
+          {/* ── Edge Styles ── */}
           <section className="docs-section" id="layouts">
             <h2 className="docs-h2">Edge Styles</h2>
             <p className="docs-p">
@@ -64,23 +89,22 @@ export default function Docs() {
               or pass <code>edgeStyle</code> as an option to{' '}
               <code>{'render(source, { edgeStyle })'}</code>.
             </p>
-            <div className="docs-code-label">straight — right-angle edges, best for org charts and process flows</div>
-            <div className="docs-code-block">
-              <pre dangerouslySetInnerHTML={{ __html: highlight(SNIPPETS.orthogonal) }} />
-            </div>
-            <div className="docs-code-label">curved — smooth bezier edges, best for mind maps</div>
-            <div className="docs-code-block">
-              <pre dangerouslySetInnerHTML={{ __html: highlight(SNIPPETS.curved) }} />
-            </div>
+            <Snippet
+              source={SNIPPETS.straight}
+              label="straight — right-angle elbows (flowchart default)"
+            />
+            <Snippet
+              source={SNIPPETS.curved}
+              label="curved — smooth bezier arcs (mindmap default), here opted into via the init directive"
+            />
           </section>
 
-          {/* ── Color Palette ── */}
+          {/* ── Colors ── */}
           <section className="docs-section" id="colors">
-            <h2 className="docs-h2">Color Palette</h2>
+            <h2 className="docs-h2">Colors</h2>
             <p className="docs-p">
-              Six classes make up the mindmaply palette. Apply them with{' '}
-              <code>classDef</code> and <code>class</code> (or <code>:::shorthand</code>)
-              in your flowchart source.
+              Branch colors are automatic: each top-level branch takes the next color
+              from the palette, and its whole subtree inherits it. The root stays white.
             </p>
             <div className="docs-swatches">
               {COLOR_SWATCHES.map(s => (
@@ -97,80 +121,68 @@ export default function Docs() {
                 </div>
               ))}
             </div>
-            <div className="docs-code-label">copy-paste classDef strings</div>
-            <div className="docs-code-block">
-              <pre dangerouslySetInnerHTML={{
-                __html: highlight(COLOR_SWATCHES.map(s => s.classDef).join('\n'))
-              }} />
-            </div>
-            <div className="docs-note">
-              Branch nodes use 8% opacity fill (<code>#hex33</code>) with a full-opacity stroke.
-              The root node is white with a dark border.
-            </div>
+            <p className="docs-p">
+              Override individual nodes with <code>style</code> directives
+              (flowchart syntax), or replace the whole palette via the theme
+              (see <a className="docs-link" href="#config" onClick={e => { e.preventDefault(); navTo('config') }}>Config &amp; Themes</a>).
+            </p>
+            <Snippet
+              source={SNIPPETS.styleOverride}
+              label="per-node overrides — outlined and dashed variants"
+            />
           </section>
 
           {/* ── Shapes ── */}
           <section className="docs-section" id="shapes">
             <h2 className="docs-h2">Shapes</h2>
-            <p className="docs-p">Node shapes that render well in mindmaply's visual style:</p>
             <table className="docs-table">
               <thead>
                 <tr>
                   <th>Shape</th>
-                  <th>Syntax</th>
+                  <th>Flowchart syntax</th>
+                  <th>Mindmap syntax</th>
                   <th>Use for</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td>Rectangle</td>
-                  <td><code>A[Label]</code></td>
+                  <td><code>A[Label]</code> / <code>A["Label"]</code></td>
+                  <td><code>[Label]</code> or bare text</td>
                   <td>Standard nodes</td>
                 </tr>
                 <tr>
                   <td>Rounded</td>
-                  <td><code>A(Label)</code></td>
-                  <td>Process steps</td>
+                  <td>—</td>
+                  <td><code>(Label)</code></td>
+                  <td>Soft emphasis</td>
                 </tr>
                 <tr>
                   <td>Circle</td>
                   <td><code>A((Label))</code></td>
+                  <td><code>((Label))</code></td>
                   <td>Root / hub nodes</td>
-                </tr>
-                <tr>
-                  <td>Diamond</td>
-                  <td><code>{'{'}Label{'}'}</code></td>
-                  <td>Decisions</td>
-                </tr>
-                <tr>
-                  <td>Stadium</td>
-                  <td><code>A([Label])</code></td>
-                  <td>Terminals / start-end</td>
                 </tr>
               </tbody>
             </table>
-            <div className="docs-code-block">
-              <pre dangerouslySetInnerHTML={{ __html: highlight(SNIPPETS.shapes) }} />
+            <div className="docs-note">
+              Other mermaid shapes (diamond, stadium, hexagon, cloud) parse gracefully
+              and render as rectangles for now.
             </div>
+            <Snippet source={SNIPPETS.shapes} />
           </section>
 
           {/* ── Direction ── */}
           <section className="docs-section" id="direction">
             <h2 className="docs-h2">Direction</h2>
             <p className="docs-p">
-              Set direction inline in your source string: <code>flowchart TD</code> (top-down)
-              or <code>flowchart LR</code> (left-right). Both work with the{' '}
-              <code>orthogonal</code> layout. The <code>curved</code> layout is optimised for{' '}
-              <code>LR</code>.
+              Both diagram types flow top-down (<code>TD</code>) or left-right
+              (<code>LR</code>), with either edge style. Flowcharts declare it in the
+              header; mindmap blocks and markdown use the document config or render
+              options.
             </p>
-            <div className="docs-code-label">TD — top-down</div>
-            <div className="docs-code-block">
-              <pre dangerouslySetInnerHTML={{ __html: highlight(SNIPPETS.directionTD) }} />
-            </div>
-            <div className="docs-code-label">LR — left-right</div>
-            <div className="docs-code-block">
-              <pre dangerouslySetInnerHTML={{ __html: highlight(SNIPPETS.directionLR) }} />
-            </div>
+            <Snippet source={SNIPPETS.directionTD} label="TD — top-down" />
+            <Snippet source={SNIPPETS.directionLR} label="LR — left-right" />
           </section>
 
           {/* ── Mindmap Syntax ── */}
@@ -183,11 +195,9 @@ export default function Docs() {
               are accepted (icons are not rendered yet), and <code>&lt;br/&gt;</code> inside a
               label produces a line break.
             </p>
-            <div className="docs-code-block">
-              <pre dangerouslySetInnerHTML={{ __html: highlight(SNIPPETS.mindmap) }} />
-            </div>
+            <Snippet source={SNIPPETS.mindmap} />
             <div className="docs-note">
-              Mindmap sources default to curved edges, left-to-right. Both are configurable —
+              Mindmaps default to curved edges, left-to-right. Both are configurable —
               the diagram type never dictates how it renders.
             </div>
           </section>
@@ -201,14 +211,15 @@ export default function Docs() {
               passed to <code>render()</code> win over document config, which wins over
               format defaults.
             </p>
-            <div className="docs-code-label">Mermaid — init directive (flowchart and mindmap)</div>
-            <div className="docs-code-block">
-              <pre dangerouslySetInnerHTML={{ __html: highlight(SNIPPETS.initConfig) }} />
-            </div>
-            <div className="docs-code-label">Markdown — frontmatter block</div>
-            <div className="docs-code-block">
-              <pre dangerouslySetInnerHTML={{ __html: highlight(SNIPPETS.frontmatterConfig, 'markdown') }} />
-            </div>
+            <Snippet
+              source={SNIPPETS.initConfig}
+              label="Mermaid — init directive (flowchart and mindmap)"
+            />
+            <Snippet
+              source={SNIPPETS.frontmatterConfig}
+              format="markdown"
+              label="Markdown — frontmatter block"
+            />
             <div className="docs-note">
               Theme keys: <code>palette</code> (branch colors, cycled across top-level
               branches), <code>fontFamily</code>, <code>fontSize</code>, <code>textColor</code>,{' '}
@@ -230,8 +241,8 @@ export default function Docs() {
           <section className="docs-section" id="reference">
             <h2 className="docs-h2">Full Reference</h2>
             <p className="docs-p">
-              mindmaply supports the Mermaid <code>flowchart</code> diagram type.
-              For complete node syntax, subgraphs, link styles, and more:
+              mindmaply supports the Mermaid <code>flowchart</code> and{' '}
+              <code>mindmap</code> diagram types. For the upstream syntax references:
             </p>
             <p className="docs-p">
               <a
@@ -241,6 +252,15 @@ export default function Docs() {
                 rel="noreferrer"
               >
                 mermaid.js.org/syntax/flowchart.html ↗
+              </a>
+              <br />
+              <a
+                className="docs-link"
+                href="https://mermaid.js.org/syntax/mindmap.html"
+                target="_blank"
+                rel="noreferrer"
+              >
+                mermaid.js.org/syntax/mindmap.html ↗
               </a>
             </p>
           </section>
