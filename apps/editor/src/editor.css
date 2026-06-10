@@ -37,7 +37,7 @@ body {
   -webkit-font-smoothing:antialiased;
   overflow:hidden;
 }
-#root { width:100%; height:100vh; display:flex; flex-direction:column; }
+#root { width:100%; height:100vh; height:100dvh; display:flex; flex-direction:column; }
 
 /* ─── app shell ───────────────────────────────────────────── */
 .app {
@@ -366,6 +366,22 @@ body {
 .exp-seg-btn:hover { color:var(--tx); }
 .exp-seg-btn.on { background:var(--white); color:var(--brand); box-shadow:0 1px 3px rgba(0,0,0,.1); }
 
+/* ─── mobile editor: diagram top half, editor bottom half ── */
+@media (max-width:768px) {
+  .body { flex-direction:column-reverse; }
+  .editor {
+    /* beat the inline px width set by the desktop resize handle */
+    width:100% !important;
+    height:50%; flex-shrink:0;
+    border-right:none; border-top:1px solid var(--ed3);
+    transition:none;
+  }
+  /* drag-resize and collapse are desktop affordances */
+  .resize-handle, .expand-tab { display:none; }
+  .ep-header { flex-wrap:wrap; row-gap:6px; }
+  .sample-bar { overflow-x:auto; scrollbar-width:none; }
+}
+
 /* ─── landing ─────────────────────────────────────────────── */
 /* Own scroll context: body{overflow:hidden} never scrolls, so the page does */
 .landing-page {
@@ -391,6 +407,14 @@ body {
   text-align:center; padding:72px 24px 48px;
   max-width:760px; margin:0 auto;
 }
+.landing-badge {
+  display:inline-block; padding:6px 14px; margin-bottom:18px;
+  border:1px solid var(--bd2); border-radius:999px;
+  background:#fff; color:var(--tx2);
+  font-size:13px; font-weight:600; text-decoration:none;
+  transition:color .15s, border-color .15s;
+}
+.landing-badge:hover { color:var(--brand); border-color:var(--brand); }
 .landing-hero h1 {
   font-size:clamp(34px,6vw,56px); font-weight:800;
   letter-spacing:-.5px; line-height:1.05;
