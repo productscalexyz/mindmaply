@@ -7,10 +7,13 @@ import { computeOrthogonalLayout } from './layout/orthogonal'
 import { renderSVG } from './renderer/index'
 import {
   resolveConfig,
+  parseFrontmatter,
+  type DiagramType,
   type Direction,
   type EdgeStyle,
   type ThemeInput,
 } from './config'
+import { isMindmapSource } from './mindmap-parser'
 
 export interface RenderOptions {
   /** @deprecated Use `edgeStyle` — 'orthogonal' maps to 'straight', 'curved' to 'curved'. */
@@ -89,7 +92,22 @@ export function validate(source: string, format: 'mermaid' | 'markdown'): Valida
 export { parse, parseMarkdown, toMarkdown, toMermaid }
 
 // Source-grammar detection (e.g. for kind-aware UI labels/colors)
-export { isMindmapSource } from './mindmap-parser'
+export { isMindmapSource }
+
+/**
+ * The diagram type (what gets drawn — mermaid.js nomenclature) of a source.
+ * There is no link between language and type: mermaid declares it via its
+ * grammar, markdown via the `diagram:` frontmatter key (default 'mindmap').
+ */
+export function diagramTypeOf(
+  source: string,
+  format: 'mermaid' | 'markdown',
+): DiagramType {
+  if (format === 'markdown') {
+    return parseFrontmatter(source).config.diagram ?? 'mindmap'
+  }
+  return isMindmapSource(source) ? 'mindmap' : 'flowchart'
+}
 
 // Share-link encoding — kept in core so the editor and the render API produce
 // byte-identical URLs from the same payload (no drift between repos).
@@ -108,6 +126,7 @@ export {
   parseFrontmatter,
   configToFrontmatter,
   configToInitDirective,
+  type DiagramType,
   type Direction,
   type EdgeStyle,
   type Theme,

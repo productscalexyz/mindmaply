@@ -184,12 +184,12 @@ describe('config round-trips through format conversion', () => {
     expect(configToInitDirective({})).toBe('')
   })
 
-  it('mermaid → markdown keeps the theme as frontmatter', () => {
+  it('mermaid → markdown keeps the theme as frontmatter (and stamps the diagram type)', () => {
     const src = `${configToInitDirective(CONFIG)}\nflowchart LR\n  root["R"]\n  root --> a["A"]`
     const md = toMarkdown(parse(src))
     expect(md).toContain('theme.palette: #111111, #222222')
     expect(md).toContain('edgeStyle: curved')
-    expect(parseMarkdown(md).config).toEqual(CONFIG)
+    expect(parseMarkdown(md).config).toEqual({ ...CONFIG, diagram: 'flowchart' })
   })
 
   it('markdown → mermaid keeps the theme as an init directive', () => {
@@ -253,6 +253,36 @@ theme.fontSize: huge
 ---
 # Title`
     expect(parseFrontmatter(src).config).toEqual({})
+  })
+})
+
+describe('diagram type in markdown frontmatter', () => {
+  it('diagram: flowchart sets the type and the straight-edge default', () => {
+    const ast = parseMarkdown('---\ndiagram: flowchart\n---\n# Root\n- a')
+    expect(ast.diagramType).toBe('flowchart')
+    expect(ast.layout).toBe('orthogonal')
+  })
+
+  it('explicit edgeStyle still wins over the type default', () => {
+    const ast = parseMarkdown('---\ndiagram: flowchart\nedgeStyle: curved\n---\n# Root\n- a')
+    expect(ast.diagramType).toBe('flowchart')
+    expect(ast.layout).toBe('curved')
+  })
+
+  it('absent diagram key keeps the mindmap/curved defaults (back-compat)', () => {
+    const ast = parseMarkdown('# Root\n- a')
+    expect(ast.diagramType).toBe('mindmap')
+    expect(ast.layout).toBe('curved')
+  })
+
+  it('invalid diagram values are dropped', () => {
+    const ast = parseMarkdown('---\ndiagram: sankey\n---\n# Root')
+    expect(ast.config?.diagram).toBeUndefined()
+    expect(ast.diagramType).toBe('mindmap')
+  })
+
+  it('the init directive never carries the diagram type (grammar declares it)', () => {
+    expect(documentConfigFromInit({ diagram: 'mindmap' })).toEqual({})
   })
 })
 

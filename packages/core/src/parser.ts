@@ -1,4 +1,4 @@
-import type { DocumentConfig } from './config'
+import type { DiagramType, DocumentConfig } from './config'
 import { documentConfigFromInit, INIT_DIRECTIVE_RE, blankInitDirective } from './config'
 import { isMindmapSource, parseMindmap, validateMindmap } from './mindmap-parser'
 
@@ -26,6 +26,12 @@ export interface ParsedAST {
   /** @deprecated edge style lives in `config.edgeStyle`; kept in sync ('curved' ⇔ edgeStyle 'curved') */
   layout: 'orthogonal' | 'curved'
   direction: 'LR' | 'TD'
+  /**
+   * What gets drawn (mermaid.js nomenclature) — independent of the language
+   * the source was written in. Mermaid grammar declares it; markdown declares
+   * it via the `diagram:` frontmatter key (default 'mindmap').
+   */
+  diagramType: DiagramType
   nodes: Map<string, ParsedNode>
   edges: ParsedEdge[]
   styles: Map<string, ParsedStyle>
@@ -118,6 +124,7 @@ export function parse(source: string): ParsedAST {
   const ast: ParsedAST = {
     layout: 'orthogonal',
     direction: 'LR',
+    diagramType: 'flowchart',
     nodes: new Map(),
     edges: [],
     styles: new Map(),

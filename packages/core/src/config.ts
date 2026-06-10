@@ -26,6 +26,10 @@ import {
 
 export type Direction = 'LR' | 'TD'
 export type EdgeStyle = 'curved' | 'straight'
+// What gets drawn (mermaid.js nomenclature). Independent of the language the
+// source is written in — a markdown outline can be either, declared via the
+// `diagram:` frontmatter key; in mermaid the grammar itself declares it.
+export type DiagramType = 'flowchart' | 'mindmap'
 
 export interface ThemeInput {
   /** Branch color palette — cycles in order across top-level branches */
@@ -48,6 +52,12 @@ export interface DocumentConfig {
   direction?: Direction
   edgeStyle?: EdgeStyle
   theme?: ThemeInput
+  /**
+   * Diagram type, markdown frontmatter only (`diagram: flowchart`). In
+   * mermaid the grammar declares the type, so the init directive never
+   * carries (or overrides) it.
+   */
+  diagram?: DiagramType
 }
 
 /** Fully resolved settings threaded through layout and rendering */
@@ -93,6 +103,10 @@ function isDirection(v: unknown): v is Direction {
 
 function isEdgeStyle(v: unknown): v is EdgeStyle {
   return v === 'curved' || v === 'straight'
+}
+
+function isDiagramType(v: unknown): v is DiagramType {
+  return v === 'flowchart' || v === 'mindmap'
 }
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{3,8}$/
@@ -169,6 +183,7 @@ export function blankInitDirective(source: string): string {
  */
 export function configToFrontmatter(config: DocumentConfig): string {
   const lines: string[] = []
+  if (config.diagram) lines.push(`diagram: ${config.diagram}`)
   if (config.direction) lines.push(`direction: ${config.direction}`)
   if (config.edgeStyle) lines.push(`edgeStyle: ${config.edgeStyle}`)
   const t = config.theme
@@ -187,11 +202,17 @@ export function configToFrontmatter(config: DocumentConfig): string {
 
 /**
  * Serialize a DocumentConfig to a mermaid init directive, or '' when there is
- * nothing to carry. Direction is omitted — the `flowchart TD|LR` header is
- * mermaid's native (and winning) way to express it.
+ * nothing to carry. The diagram type is never emitted — the grammar declares
+ * it. Direction is omitted by default (the `flowchart TD|LR` header is
+ * mermaid's native way to express it); pass `includeDirection` when emitting
+ * `mindmap` grammar, which has no direction header.
  */
-export function configToInitDirective(config: DocumentConfig): string {
+export function configToInitDirective(
+  config: DocumentConfig,
+  opts: { includeDirection?: boolean } = {},
+): string {
   const mp: Record<string, unknown> = {}
+  if (opts.includeDirection && config.direction) mp['direction'] = config.direction
   if (config.edgeStyle) mp['edgeStyle'] = config.edgeStyle
   if (config.theme && Object.keys(config.theme).length > 0) mp['theme'] = config.theme
   if (Object.keys(mp).length === 0) return ''
@@ -210,9 +231,9 @@ export interface FrontmatterResult {
 
 /**
  * Parse an optional leading `--- ... ---` frontmatter block. Only a flat
- * `key: value` subset is supported (no YAML dependency): `direction`,
- * `edgeStyle`, and dotted `theme.*` keys. `theme.palette` takes a
- * comma-separated color list. Unknown keys are ignored.
+ * `key: value` subset is supported (no YAML dependency): `diagram`,
+ * `direction`, `edgeStyle`, and dotted `theme.*` keys. `theme.palette` takes
+ * a comma-separated color list. Unknown keys are ignored.
  *
  * The returned body replaces frontmatter lines with empty lines so that
  * validation line numbers still match the original source.
@@ -247,7 +268,9 @@ export function parseFrontmatter(source: string): FrontmatterResult {
     const value = line.slice(colonIdx + 1).trim()
     if (!value) continue
 
-    if (key === 'direction' && isDirection(value)) {
+    if (key === 'diagram' && isDiagramType(value)) {
+      config.diagram = value
+    } else if (key === 'direction' && isDirection(value)) {
       config.direction = value
     } else if (key === 'edgeStyle' && isEdgeStyle(value)) {
       config.edgeStyle = value

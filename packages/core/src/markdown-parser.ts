@@ -24,9 +24,17 @@ const BULLET_RE = /^(\s*)[-*+]\s+(.+)$/
  */
 export function parseMarkdown(source: string): ParsedAST {
   const { config, body } = parseFrontmatter(source)
+  // The diagram type is declared by frontmatter (default mindmap) — never by
+  // the language. Edge-style default follows the type: mindmaps curve,
+  // flowcharts use straight elbows. Explicit edgeStyle config still wins.
+  const diagramType = config.diagram ?? 'mindmap'
+  const defaultLayout = diagramType === 'flowchart' ? 'orthogonal' : 'curved'
   const ast: ParsedAST = {
-    layout: config.edgeStyle === 'straight' ? 'orthogonal' : 'curved',
+    layout: config.edgeStyle
+      ? (config.edgeStyle === 'straight' ? 'orthogonal' : 'curved')
+      : defaultLayout,
     direction: config.direction ?? 'LR',
+    diagramType,
     nodes: new Map(),
     edges: [],
     styles: new Map(), // markdown has no style directives
@@ -39,7 +47,9 @@ export function parseMarkdown(source: string): ParsedAST {
   // Bullets use depth = 7 + floor(indentSpaces / 2)
   const stack: Array<[number, string]> = []
 
-  function addNode(label: string): string {
+  function addNode(rawLabel: string): string {
+    // Mirror the mindmap parser: <br/> in a label is a line break
+    const label = rawLabel.replace(/<br\s*\/?>/gi, '\n')
     const id = slugify(label, counter++)
     ast.nodes.set(id, { id, label, shape: 'rect' })
     return id

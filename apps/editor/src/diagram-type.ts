@@ -1,13 +1,14 @@
-import { isMindmapSource } from 'mindmaply-core'
+import { diagramTypeOf, type DiagramType } from 'mindmaply-core'
 
-// Two independent axes — never conflate them:
+// Two independent axes — never conflate them, and never link them:
 //   Language (the syntax the source is written in): 'mermaid' | 'markdown'
 //   Diagram type (the shape that gets drawn):       'flowchart' | 'mindmap'
-// A markdown outline draws as a mind map; a mermaid source draws as either,
-// depending on its grammar. Rendering style (direction, edge style, theme)
-// is a third independent axis and never follows from either of these.
+// The type survives language conversion: mermaid declares it via its grammar
+// (mermaid.js nomenclature), markdown via the `diagram:` frontmatter key
+// (default mindmap). Rendering style (direction, edge style, theme) is a
+// third independent axis and never follows from either of these.
 export type Language = 'mermaid' | 'markdown'
-export type DiagramType = 'flowchart' | 'mindmap'
+export type { DiagramType }
 
 export const DIAGRAM_TYPE_COLORS: Record<DiagramType, string> = {
   flowchart: '#4B96E6', // blue
@@ -15,6 +16,5 @@ export const DIAGRAM_TYPE_COLORS: Record<DiagramType, string> = {
 }
 
 export function diagramType(source: string, language: Language): DiagramType {
-  if (language === 'markdown') return 'mindmap'
-  return isMindmapSource(source) ? 'mindmap' : 'flowchart'
+  return diagramTypeOf(source, language)
 }
