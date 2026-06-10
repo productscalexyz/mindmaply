@@ -1,4 +1,5 @@
 import type { ParsedAST } from './parser'
+import { configToFrontmatter, configToInitDirective } from './config'
 
 function findRoot(ast: ParsedAST): string | null {
   const hasIncoming = new Set(ast.edges.map(e => e.to))
@@ -18,6 +19,11 @@ export function toMarkdown(ast: ParsedAST): string {
   if (!rootId) return ''
 
   const lines: string[] = []
+
+  // Document config travels with the source: emit it as frontmatter so
+  // converting formats never silently drops the theme/direction/edge style.
+  const frontmatter = ast.config ? configToFrontmatter(ast.config) : ''
+  if (frontmatter) lines.push(frontmatter, '')
   const visited = new Set<string>()
 
   function traverse(nodeId: string, depth: number): void {
@@ -57,7 +63,15 @@ export function toMermaid(ast: ParsedAST, direction?: 'TD' | 'LR'): string {
   const rootId = findRoot(ast)
   if (!rootId) return ''
 
-  const lines = [`flowchart ${direction ?? ast.direction ?? 'LR'}`]
+  const lines: string[] = []
+
+  // Document config travels with the source: emit it as an init directive so
+  // converting formats never silently drops the theme/edge style. Direction
+  // is carried by the flowchart header below.
+  const directive = ast.config ? configToInitDirective(ast.config) : ''
+  if (directive) lines.push(directive)
+
+  lines.push(`flowchart ${direction ?? ast.direction ?? 'LR'}`)
 
   // BFS from root for consistent declaration order
   const order: string[] = []

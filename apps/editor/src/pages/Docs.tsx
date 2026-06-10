@@ -57,12 +57,14 @@ export default function Docs() {
 
           {/* ── Layouts ── */}
           <section className="docs-section" id="layouts">
-            <h2 className="docs-h2">Layouts</h2>
+            <h2 className="docs-h2">Edge Styles</h2>
             <p className="docs-p">
-              Two rendering modes. Pass <code>layout</code> as an option to{' '}
-              <code>{'render(source, { layout })'}</code> — it is not part of the Mermaid source.
+              Edge rendering is independent of the diagram type. Set it in the
+              document config (see <a className="docs-link" href="#config" onClick={e => { e.preventDefault(); navTo('config') }}>Config &amp; Themes</a>)
+              or pass <code>edgeStyle</code> as an option to{' '}
+              <code>{'render(source, { edgeStyle })'}</code>.
             </p>
-            <div className="docs-code-label">orthogonal — right-angle edges, best for org charts and process flows</div>
+            <div className="docs-code-label">straight — right-angle edges, best for org charts and process flows</div>
             <div className="docs-code-block">
               <pre dangerouslySetInnerHTML={{ __html: highlight(SNIPPETS.orthogonal) }} />
             </div>
@@ -168,6 +170,51 @@ export default function Docs() {
             <div className="docs-code-label">LR — left-right</div>
             <div className="docs-code-block">
               <pre dangerouslySetInnerHTML={{ __html: highlight(SNIPPETS.directionLR) }} />
+            </div>
+          </section>
+
+          {/* ── Mindmap Syntax ── */}
+          <section className="docs-section" id="mindmap">
+            <h2 className="docs-h2">Mindmap Syntax</h2>
+            <p className="docs-p">
+              Standard Mermaid <code>mindmap</code> blocks are supported alongside flowcharts.
+              Nesting is indentation-based and relative — each line becomes a child of the
+              nearest line above it with smaller indentation. <code>::icon(...)</code> directives
+              are accepted (icons are not rendered yet), and <code>&lt;br/&gt;</code> inside a
+              label produces a line break.
+            </p>
+            <div className="docs-code-block">
+              <pre dangerouslySetInnerHTML={{ __html: highlight(SNIPPETS.mindmap) }} />
+            </div>
+            <div className="docs-note">
+              Mindmap sources default to curved edges, left-to-right. Both are configurable —
+              the diagram type never dictates how it renders.
+            </div>
+          </section>
+
+          {/* ── Config & Themes ── */}
+          <section className="docs-section" id="config">
+            <h2 className="docs-h2">Config &amp; Themes</h2>
+            <p className="docs-p">
+              Direction, edge style, and theme (palette, fonts, colors) travel with the
+              document, so a shared or embedded diagram keeps its look. Render options
+              passed to <code>render()</code> win over document config, which wins over
+              format defaults.
+            </p>
+            <div className="docs-code-label">Mermaid — init directive (flowchart and mindmap)</div>
+            <div className="docs-code-block">
+              <pre dangerouslySetInnerHTML={{ __html: highlight(SNIPPETS.initConfig) }} />
+            </div>
+            <div className="docs-code-label">Markdown — frontmatter block</div>
+            <div className="docs-code-block">
+              <pre dangerouslySetInnerHTML={{ __html: highlight(SNIPPETS.frontmatterConfig, 'markdown') }} />
+            </div>
+            <div className="docs-note">
+              Theme keys: <code>palette</code> (branch colors, cycled across top-level
+              branches), <code>fontFamily</code>, <code>fontSize</code>, <code>textColor</code>,{' '}
+              <code>canvasBg</code>, <code>rootBg</code>, <code>edgeStrokeWidth</code>. Omitted
+              keys keep the default look. Invalid values are ignored — config never breaks a
+              diagram.
             </div>
           </section>
 

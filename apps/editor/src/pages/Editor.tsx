@@ -7,7 +7,8 @@ import {
   validate,
   type ValidationError,
 } from 'mindmaply-core'
-import { SAMPLES, getSampleSource, type SampleId, type Direction } from '../samples'
+import { SAMPLES, getSampleSource, type SampleId, type Direction, type EdgeStyle } from '../samples'
+import { diagramType, DIAGRAM_TYPE_COLORS } from '../diagram-type'
 import { clampZoom } from '../zoom'
 import { renderFromPayload } from '../render'
 import EditorPanel from '../components/EditorPanel'
@@ -29,6 +30,9 @@ export default function Editor() {
     shared?.sample && shared.sample in SAMPLES ? (shared.sample as SampleId) : 'org'
   const [sample, setSample] = useState<SampleId>(initialSample)
   const [direction, setDirection] = useState<Direction>(shared?.direction ?? 'TD')
+  const [edgeStyle, setEdgeStyle] = useState<EdgeStyle>(
+    shared?.edgeStyle ?? SAMPLES[initialSample].edgeStyle
+  )
   const [zoom, setZoomRaw] = useState(1)
   const [shareOpen, setShareOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
@@ -45,46 +49,64 @@ export default function Editor() {
 
   // Live shareable link + embed snippets encoding the current editor state.
   const shareUrl = useMemo(
-    () => buildShareUrl({ v: 1, source, format, direction, sample }),
-    [source, format, direction, sample]
+    () => buildShareUrl({ v: 1, source, format, direction, edgeStyle, sample }),
+    [source, format, direction, edgeStyle, sample]
   )
   const embedCode = useMemo(() => {
-    const url = buildEmbedUrl({ v: 1, source, format, direction, sample })
+    const url = buildEmbedUrl({ v: 1, source, format, direction, edgeStyle, sample })
     return `<iframe src="${url}" width="800" height="500" style="border:0;border-radius:12px" loading="lazy"></iframe>`
-  }, [source, format, direction, sample])
+  }, [source, format, direction, edgeStyle, sample])
   const imgCode = useMemo(
-    () => buildImgEmbedCode({ v: 1, source, format, direction, sample }),
-    [source, format, direction, sample]
+    () => buildImgEmbedCode({ v: 1, source, format, direction, edgeStyle, sample }),
+    [source, format, direction, edgeStyle, sample]
   )
 
   const setZoom = useCallback((z: number) => setZoomRaw(clampZoom(z)), [])
 
-  // Load a sample's source, keeping the current format
+  // Canvas info badge: diagram type (colored — what's drawn) · language
+  // (the syntax it's written in) · live node count. Tracks edits, never
+  // shows the sample/file name.
+  const canvasInfo = useMemo(() => {
+    const type = diagramType(source, format)
+    let text = `${type} · ${format}`
+    try {
+      const ast = format === 'markdown' ? parseMarkdown(source) : parse(source)
+      text += ` · ${ast.nodes.size} nodes`
+    } catch {
+      // unparseable mid-edit — show type · language alone
+    }
+    return { color: DIAGRAM_TYPE_COLORS[type], text }
+  }, [source, format])
+
+  // Load a sample's source, keeping the current format. The sample's
+  // preferred edge style is just a starting point — both toggles stay live.
   const handleSampleChange = useCallback((id: SampleId) => {
     setSample(id)
+    setEdgeStyle(SAMPLES[id].edgeStyle)
     const src = getSampleSource(id, direction)
     setSource(format === 'markdown' ? toMarkdown(parse(src)) : src)
   }, [direction, format])
 
-  // Change direction without discarding user edits: in Mermaid mode the
-  // `flowchart TD|LR` header is the source of truth, so rewrite just that
-  // line; in Markdown mode direction is a render option (no source change).
+  // Change direction without discarding user edits: when a Mermaid source has
+  // a `flowchart TD|LR` header, that header is the source of truth, so rewrite
+  // just that line. Otherwise (markdown, mermaid mindmap blocks) direction is
+  // a render option — no source change needed.
   const handleDirectionChange = useCallback((d: Direction) => {
     setDirection(d)
     if (format === 'mermaid') {
       setSource((prev: string) =>
         /^(\s*)flowchart\s+\w+/m.test(prev)
           ? prev.replace(/^(\s*)flowchart\s+\w+/m, `$1flowchart ${d}`)
-          : `flowchart ${d}\n${prev}`
+          : prev
       )
     }
   }, [format])
 
-  // Re-render diagram and re-validate whenever source, format, or direction changes
+  // Re-render diagram and re-validate whenever source, format, direction, or edge style changes
   useEffect(() => {
     const result = validate(source, format)
     try {
-      const svgStr = renderFromPayload({ v: 1, source, format, direction, sample })
+      const svgStr = renderFromPayload({ v: 1, source, format, direction, edgeStyle, sample })
       setSvg(svgStr)
       setErrors(result.errors)
     } catch (err) {
@@ -92,7 +114,7 @@ export default function Editor() {
       const message = err instanceof Error ? err.message : String(err)
       setErrors(result.valid ? [{ line: 1, message }] : result.errors)
     }
-  }, [source, sample, format, direction])
+  }, [source, sample, format, direction, edgeStyle])
 
   // Keyboard zoom shortcuts
   useEffect(() => {
@@ -154,6 +176,8 @@ export default function Editor() {
             onSampleChange={handleSampleChange}
             direction={direction}
             onDirectionChange={handleDirectionChange}
+            edgeStyle={edgeStyle}
+            onEdgeStyleChange={setEdgeStyle}
             source={source}
             onSourceChange={setSource}
             format={format}
@@ -185,8 +209,7 @@ export default function Editor() {
             svg={svg}
             zoom={zoom}
             onZoomChange={setZoom}
-            sample={sample}
-            direction={direction}
+            info={canvasInfo}
             onShare={() => setShareOpen(true)}
             onExport={() => setExportOpen(true)}
           />

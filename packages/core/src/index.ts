@@ -1,58 +1,79 @@
-import { parse, validateMermaid } from './parser'
+import { parse, validateMermaid, type ParsedAST } from './parser'
 import { parseMarkdown, validateMarkdownSource } from './markdown-parser'
 import type { ValidationResult } from './parser'
 import { toMarkdown, toMermaid } from './serializers'
 import { buildTree } from './tree'
 import { computeOrthogonalLayout } from './layout/orthogonal'
-import { computeCurvedLayout } from './layout/curved'
 import { renderSVG } from './renderer/index'
+import {
+  resolveConfig,
+  type Direction,
+  type EdgeStyle,
+  type ThemeInput,
+} from './config'
 
 export interface RenderOptions {
-  /** Override layout mode. If omitted, inferred from source format defaults (orthogonal for Mermaid, curved for Markdown). */
+  /** @deprecated Use `edgeStyle` — 'orthogonal' maps to 'straight', 'curved' to 'curved'. */
   layout?: 'orthogonal' | 'curved'
-  /** Override direction. If omitted, read from 'flowchart TD/LR' declaration or default to 'LR'. */
-  direction?: 'LR' | 'TD'
+  /** Override edge rendering: smooth bezier arcs or straight elbow connectors. */
+  edgeStyle?: EdgeStyle
+  /** Override direction. If omitted, read from document config or default to 'LR'. */
+  direction?: Direction
+  /** Theme overrides (palette, fonts, colors) merged over the document theme and defaults. */
+  theme?: ThemeInput
   /** Padding around the diagram in SVG units. Default: SVG_CANVAS_PADDING from design. */
   padding?: number
 }
 
+function legacyLayoutToEdgeStyle(layout?: 'orthogonal' | 'curved'): EdgeStyle | undefined {
+  if (layout === 'curved') return 'curved'
+  if (layout === 'orthogonal') return 'straight'
+  return undefined
+}
+
+// Shared pipeline: the AST's layout/direction fields already fold the
+// document config over the format defaults, so they act as the doc layer here.
+function renderAST(ast: ParsedAST, options: RenderOptions): string {
+  const config = resolveConfig(
+    {
+      direction: ast.direction,
+      edgeStyle: ast.layout === 'curved' ? 'curved' : 'straight',
+      theme: ast.config?.theme,
+    },
+    {
+      direction: options.direction,
+      edgeStyle: options.edgeStyle ?? legacyLayoutToEdgeStyle(options.layout),
+      theme: options.theme,
+    },
+  )
+  const tree = buildTree(ast, config.theme)
+  const layoutRoot = computeOrthogonalLayout(tree, config.direction, config.theme)
+  return renderSVG(layoutRoot, { ...config, padding: options.padding })
+}
+
 /**
- * Parse a Mermaid flowchart string and render a Whimsical-quality SVG mind map.
+ * Parse a Mermaid source (flowchart or mindmap block) and render a
+ * Whimsical-quality SVG mind map.
  *
- * @param source  Mermaid flowchart string
+ * @param source  Mermaid flowchart or mindmap string
  * @param options Optional render overrides
  * @returns       SVG string
  */
 export function render(source: string, options: RenderOptions = {}): string {
-  const ast = parse(source)
-  const tree = buildTree(ast)
-  const layoutMode = options.layout ?? ast.layout
-  const direction = options.direction ?? ast.direction
-  const layoutRoot =
-    layoutMode === 'curved'
-      ? computeCurvedLayout(tree)
-      : computeOrthogonalLayout(tree, direction)
-  return renderSVG(layoutRoot, { layout: layoutMode, direction, padding: options.padding })
+  return renderAST(parse(source), options)
 }
 
 /**
- * Parse a Markdown heading/bullet string and render a Whimsical-quality SVG mind map.
- * Defaults to curved layout (can be overridden via options).
+ * Parse a Markdown heading/bullet string and render a Whimsical-quality SVG
+ * mind map. Defaults to curved edges; an optional `--- ... ---` frontmatter
+ * block can set direction, edgeStyle, and theme.* keys.
  *
  * @param source  Markdown string with `# headings` and `- bullets`
  * @param options Optional render overrides
  * @returns       SVG string
  */
 export function renderMarkdown(source: string, options: RenderOptions = {}): string {
-  const ast = parseMarkdown(source)
-  const tree = buildTree(ast)
-  const layoutMode = options.layout ?? ast.layout
-  const direction = options.direction ?? ast.direction
-  const layoutRoot =
-    layoutMode === 'curved'
-      ? computeCurvedLayout(tree)
-      : computeOrthogonalLayout(tree, direction)
-  return renderSVG(layoutRoot, { layout: layoutMode, direction, padding: options.padding })
+  return renderAST(parseMarkdown(source), options)
 }
 
 /**
@@ -67,6 +88,9 @@ export function validate(source: string, format: 'mermaid' | 'markdown'): Valida
 // Named exports for editor format switching
 export { parse, parseMarkdown, toMarkdown, toMermaid }
 
+// Source-grammar detection (e.g. for kind-aware UI labels/colors)
+export { isMindmapSource } from './mindmap-parser'
+
 // Share-link encoding — kept in core so the editor and the render API produce
 // byte-identical URLs from the same payload (no drift between repos).
 export {
@@ -77,7 +101,22 @@ export {
   type SharePayload,
 } from './share'
 
+// Configuration — document config, themes, and the precedence resolver
+export {
+  DEFAULT_THEME,
+  resolveConfig,
+  parseFrontmatter,
+  configToFrontmatter,
+  configToInitDirective,
+  type Direction,
+  type EdgeStyle,
+  type Theme,
+  type ThemeInput,
+  type DocumentConfig,
+  type DiagramConfig,
+} from './config'
+
 // Re-export types for consumers
-export type { ParsedAST, ValidationError, ValidationResult } from './parser'
+export type { ParsedAST, ParsedNode, ValidationError, ValidationResult } from './parser'
 export type { TreeNode, ResolvedStyle } from './tree'
 export type { LayoutNode } from './layout/types'

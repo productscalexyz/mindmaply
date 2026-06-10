@@ -28,4 +28,15 @@ describe('encodeShare / decodeShare', () => {
     const bad = encodeShare({ ...payload, format: 'xml' as never })
     expect(decodeShare(bad)).toBeNull()
   })
+
+  it('round-trips a payload with an edgeStyle', () => {
+    const p: SharePayload = { ...payload, edgeStyle: 'straight' }
+    expect(decodeShare(encodeShare(p))).toEqual(p)
+  })
+
+  it('legacy payloads without edgeStyle still decode', () => {
+    const decoded = decodeShare(encodeShare(payload))
+    expect(decoded).toEqual(payload)
+    expect(decoded!.edgeStyle).toBeUndefined()
+  })
 })

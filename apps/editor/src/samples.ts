@@ -1,20 +1,30 @@
-export type SampleId = 'org' | 'mm' | 'proc'
+export type SampleId = 'org' | 'mm' | 'proc' | 'batman'
 export type Direction = 'TD' | 'LR'
+export type EdgeStyle = 'curved' | 'straight'
 
 export interface SampleConfig {
   id: SampleId
   label: string
+  /** Base name for exports (never displayed in the UI) */
   file: string
   sources: { TD: string; LR: string }
-  layout: 'orthogonal' | 'curved'
+  /** Preferred edge style when the sample is loaded — always changeable in the UI */
+  edgeStyle: EdgeStyle
+  /** Whether the sample ships distinct TD/LR source variants (direction itself is always toggleable) */
   supportsDirection: boolean
-  color: string
-  info: (dir: Direction) => string
-  statusInfo: string
 }
 
-// ── Org Chart ────────────────────────────────────────────────
-const ORG_TD = `flowchart TD
+// Every sample carries the default theme inline so it is visible and editable
+// right in the editor. Converting to Markdown turns this into frontmatter.
+const THEME_DIRECTIVE = `%%{init: {"mindmaply": {"theme": {
+  "palette": ["#4B96E6", "#B355D0", "#55A996", "#E5884B", "#EBB94A"],
+  "fontFamily": "Inter, SF Pro Text, system-ui, sans-serif",
+  "fontSize": 16
+}}}}%%`
+
+// ── Org Chart (flowchart grammar) ────────────────────────────
+const ORG_TD = `${THEME_DIRECTIVE}
+flowchart TD
   CEO["Chief Executive"]
   CEO --> CTO["Engineering"]
   CEO --> CPO["Product"]
@@ -32,24 +42,26 @@ const ORG_TD = `flowchart TD
 
 const ORG_LR = ORG_TD.replace('flowchart TD', 'flowchart LR')
 
-// ── Mind Map (curved) ────────────────────────────────────────
-const MM_SOURCE = `flowchart LR
-  root["Mindmaply"]
-  root --> A["A mind map is"]
-  root --> B["We made it faster"]
-  root --> C["Collaborative"]
-  root --> D["Beautiful by default"]
-  A --> A1["Organizes information"]
-  A --> A2["Shows hierarchy visually"]
-  B --> B1["Polished interactions"]
-  B --> B2["Keyboard shortcuts"]
-  C --> C1["Real-time editing"]
-  C --> C2["Comments and threads"]
-  D --> D1["Auto-colored branches"]
-  D --> D2["Curated palette"]`
+// ── Mind Map (mindmap grammar) ───────────────────────────────
+const MM_SOURCE = `${THEME_DIRECTIVE}
+mindmap
+  root((Mindmaply))
+    A mind map is
+      Organizes information
+      Shows hierarchy visually
+    We made it faster
+      Polished interactions
+      Keyboard shortcuts
+    Collaborative
+      Real-time editing
+      Comments and threads
+    Beautiful by default
+      Auto-colored branches
+      Curated palette`
 
-// ── Process Flow ─────────────────────────────────────────────
-const PROC_TD = `flowchart TD
+// ── Process Flow (flowchart grammar) ─────────────────────────
+const PROC_TD = `${THEME_DIRECTIVE}
+flowchart TD
   Start["Start"]
   Start --> Input["User types syntax"]
   Input --> Valid["Valid syntax?"]
@@ -62,39 +74,60 @@ const PROC_TD = `flowchart TD
 
 const PROC_LR = PROC_TD.replace('flowchart TD', 'flowchart LR')
 
+// ── Batman (mindmap grammar, deep nesting) ───────────────────
+const BATMAN_SOURCE = `${THEME_DIRECTIVE}
+mindmap
+  root((Batman))
+    Origins
+      Born Bruce Wayne
+      Crime Alley
+        Vows to fight crime
+          Trains across the world
+    Allies
+      Alfred Pennyworth
+      Robin
+      Commissioner Gordon
+    Rogues
+      The Joker
+      Two-Face
+      Bane
+    Gear
+      Batsuit
+      Batmobile
+      Utility belt`
+
 export const SAMPLES: Record<SampleId, SampleConfig> = {
   org: {
     id: 'org',
     label: 'Org Chart',
     file: 'org-chart.mmd',
     sources: { TD: ORG_TD, LR: ORG_LR },
-    layout: 'orthogonal',
+    edgeStyle: 'straight',
     supportsDirection: true,
-    color: '#4B96E6',
-    info: (dir) => `Org Chart · graph ${dir} · 14 nodes`,
-    statusInfo: '14 nodes · 4 branches',
   },
   mm: {
     id: 'mm',
     label: 'Mind Map',
     file: 'mindmap.mmd',
     sources: { TD: MM_SOURCE, LR: MM_SOURCE },
-    layout: 'curved',
+    edgeStyle: 'curved',
     supportsDirection: false,
-    color: '#B355D0',
-    info: () => 'Mind Map · flowchart LR · 5 branches',
-    statusInfo: '13 nodes · 5 branches',
   },
   proc: {
     id: 'proc',
     label: 'Process',
     file: 'process.mmd',
     sources: { TD: PROC_TD, LR: PROC_LR },
-    layout: 'orthogonal',
+    edgeStyle: 'straight',
     supportsDirection: false,
-    color: '#55A996',
-    info: (dir) => `Process Flow · graph ${dir} · 9 nodes`,
-    statusInfo: '9 nodes · 3 branches',
+  },
+  batman: {
+    id: 'batman',
+    label: 'Batman',
+    file: 'batman.mmd',
+    sources: { TD: BATMAN_SOURCE, LR: BATMAN_SOURCE },
+    edgeStyle: 'curved',
+    supportsDirection: false,
   },
 }
 

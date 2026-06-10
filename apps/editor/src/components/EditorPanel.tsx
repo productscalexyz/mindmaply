@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef } from 'react'
 import type { ValidationError } from 'mindmaply-core'
-import { SAMPLES, type SampleId, type Direction } from '../samples'
+import { type SampleId, type Direction, type EdgeStyle } from '../samples'
 import { highlight } from '../highlight'
 import SampleBar from './SampleBar'
 
@@ -9,6 +9,8 @@ interface Props {
   onSampleChange: (id: SampleId) => void
   direction: Direction
   onDirectionChange: (d: Direction) => void
+  edgeStyle: EdgeStyle
+  onEdgeStyleChange: (e: EdgeStyle) => void
   source: string
   onSourceChange: (s: string) => void
   format: 'mermaid' | 'markdown'
@@ -22,6 +24,8 @@ export default function EditorPanel({
   onSampleChange,
   direction,
   onDirectionChange,
+  edgeStyle,
+  onEdgeStyleChange,
   source,
   onSourceChange,
   format,
@@ -29,7 +33,6 @@ export default function EditorPanel({
   errors,
   width,
 }: Props) {
-  const config = SAMPLES[sample]
   const highlighted = useMemo(() => highlight(source, format), [source, format])
   const preRef = useRef<HTMLPreElement>(null)
   const gutterRef = useRef<HTMLPreElement>(null)
@@ -69,13 +72,7 @@ export default function EditorPanel({
             Mermaid
           </button>
         </div>
-        <div
-          className="dir-toggle"
-          style={{
-            opacity: config.supportsDirection ? 1 : 0.35,
-            pointerEvents: config.supportsDirection ? 'auto' : 'none',
-          }}
-        >
+        <div className="dir-toggle">
           <button
             className={`dir-btn${direction === 'TD' ? ' on' : ''}`}
             onClick={() => onDirectionChange('TD')}
@@ -89,6 +86,22 @@ export default function EditorPanel({
             title="Left-Right"
           >
             Left → Right
+          </button>
+        </div>
+        <div className="dir-toggle">
+          <button
+            className={`dir-btn${edgeStyle === 'curved' ? ' on' : ''}`}
+            onClick={() => onEdgeStyleChange('curved')}
+            title="Curved edges"
+          >
+            Curvy
+          </button>
+          <button
+            className={`dir-btn${edgeStyle === 'straight' ? ' on' : ''}`}
+            onClick={() => onEdgeStyleChange('straight')}
+            title="Straight edges"
+          >
+            Straight
           </button>
         </div>
       </div>

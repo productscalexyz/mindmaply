@@ -45,6 +45,23 @@ describe('share encoding', () => {
     expect(decodeShare(enc)).toEqual({ v: 1, source: SAMPLE.source, format: 'markdown', direction: 'LR' })
   })
 
+  it('round-trips a payload with an edgeStyle', () => {
+    const p: SharePayload = { ...SAMPLE, edgeStyle: 'curved' }
+    expect(decodeShare(encodeShare(p))).toEqual(p)
+  })
+
+  it('legacy payloads without edgeStyle decode unchanged', () => {
+    expect(decodeShare(encodeShare(SAMPLE))).toEqual(SAMPLE)
+    expect(decodeShare(encodeShare(SAMPLE))!.edgeStyle).toBeUndefined()
+  })
+
+  it('drops an invalid edgeStyle rather than failing', () => {
+    const enc = encodeShare({ ...SAMPLE, edgeStyle: 'zigzag' as never })
+    const decoded = decodeShare(enc)
+    expect(decoded).not.toBeNull()
+    expect(decoded!.edgeStyle).toBeUndefined()
+  })
+
   it('builds editor and embed URLs from the same base', () => {
     const base = 'https://mindmaply.app/'
     expect(buildShareUrl(SAMPLE, base)).toBe(`${base}#/editor?d=${encodeShare(SAMPLE)}`)

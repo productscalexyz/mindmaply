@@ -2,10 +2,12 @@ import type { LayoutNode } from '../layout/types'
 import { renderDefs, renderBackground, renderRootNode, renderChildNode } from './nodes'
 import { renderOrthogonalFan, renderCurvedEdge } from './edges'
 import { SVG_CANVAS_PADDING } from '../design'
+import { DEFAULT_THEME, type EdgeStyle, type Theme } from '../config'
 
-export interface RenderOptions {
-  layout?: 'orthogonal' | 'curved'
+export interface RenderSVGOptions {
+  edgeStyle?: EdgeStyle
   direction?: 'LR' | 'TD'
+  theme?: Theme
   padding?: number
 }
 
@@ -39,37 +41,48 @@ function collectEdges(root: LayoutNode): Array<{ parent: LayoutNode; child: Layo
   return edges
 }
 
-export function renderSVG(root: LayoutNode, options: RenderOptions = {}): string {
-  const { layout = 'orthogonal', direction = 'LR', padding = SVG_CANVAS_PADDING } = options
+export function renderSVG(root: LayoutNode, options: RenderSVGOptions = {}): string {
+  const {
+    edgeStyle = 'straight',
+    direction = 'LR',
+    theme = DEFAULT_THEME,
+    padding = SVG_CANVAS_PADDING,
+  } = options
 
   const nodes = collectNodes(root)
 
-  // Compute bounding box from all node positions
-  const xs = nodes.flatMap(n => [n.x - n.width / 2, n.x + n.width / 2])
-  const ys = nodes.flatMap(n => [n.y - n.height / 2, n.y + n.height / 2])
-  const minX = Math.min(...xs) - padding
-  const minY = Math.min(...ys) - padding
-  const maxX = Math.max(...xs) + padding
-  const maxY = Math.max(...ys) + padding
+  // Bounding box over all node extents (loop, not spread — spread blows the
+  // argument limit on very large diagrams)
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+  for (const n of nodes) {
+    minX = Math.min(minX, n.x - n.width / 2)
+    maxX = Math.max(maxX, n.x + n.width / 2)
+    minY = Math.min(minY, n.y - n.height / 2)
+    maxY = Math.max(maxY, n.y + n.height / 2)
+  }
+  minX -= padding
+  minY -= padding
+  maxX += padding
+  maxY += padding
   const width = maxX - minX
   const height = maxY - minY
 
-  // Orthogonal: render each parent's children as one non-overlapping fan (trunk + stubs).
+  // Straight: render each parent's children as one non-overlapping fan (trunk + stubs).
   // Curved: render each edge as an independent bezier arc.
-  const edgeSVG = layout === 'orthogonal'
-    ? collectFans(root).map(({ parent, children }) => renderOrthogonalFan(parent, children, direction)).join('\n')
-    : collectEdges(root).map(({ parent, child }) => renderCurvedEdge(parent, child)).join('\n')
+  const edgeSVG = edgeStyle === 'straight'
+    ? collectFans(root).map(({ parent, children }) => renderOrthogonalFan(parent, children, direction, theme)).join('\n')
+    : collectEdges(root).map(({ parent, child }) => renderCurvedEdge(parent, child, direction, theme)).join('\n')
 
   const parts: string[] = [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${width} ${height}" width="${width}" height="${height}">`,
     renderDefs(),
-    renderBackground(width, height, minX, minY),
+    renderBackground(width, height, minX, minY, theme),
     // Edges drawn first (below nodes)
     edgeSVG,
     // Root node
-    renderRootNode(root),
+    renderRootNode(root, theme),
     // All child nodes
-    ...nodes.filter(n => n.depth > 0).map(renderChildNode),
+    ...nodes.filter(n => n.depth > 0).map(n => renderChildNode(n, theme)),
     '</svg>',
   ]
 

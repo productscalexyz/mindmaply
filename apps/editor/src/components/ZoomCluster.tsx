@@ -18,7 +18,7 @@ export default function ZoomCluster({ zoom, onChange, onFit }: Props) {
         +
       </button>
       <div className="zc-sep" />
-      <button className="zc-fit" onClick={onFit}>Fit</button>
+      <button className="zc-fit" title="Fit diagram to view" onClick={onFit}>Fit</button>
       <div className="zc-sep" />
       <button className="zc-fit" onClick={() => onChange(0.5)}>50%</button>
       <button

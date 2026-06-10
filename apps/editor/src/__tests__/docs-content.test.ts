@@ -35,8 +35,8 @@ describe('COLOR_SWATCHES', () => {
 })
 
 describe('NAV_SECTIONS', () => {
-  it('has 6 sections', () => {
-    expect(NAV_SECTIONS).toHaveLength(6)
+  it('has 8 sections', () => {
+    expect(NAV_SECTIONS).toHaveLength(8)
   })
 
   it('each section has id and label', () => {
@@ -48,19 +48,16 @@ describe('NAV_SECTIONS', () => {
     }
   })
 
-  it('contains overview, layouts, colors, shapes, direction, reference', () => {
+  it('contains all documented sections', () => {
     const ids = NAV_SECTIONS.map(s => s.id)
-    expect(ids).toContain('overview')
-    expect(ids).toContain('layouts')
-    expect(ids).toContain('colors')
-    expect(ids).toContain('shapes')
-    expect(ids).toContain('direction')
-    expect(ids).toContain('reference')
+    for (const id of ['overview', 'layouts', 'colors', 'shapes', 'direction', 'mindmap', 'config', 'reference']) {
+      expect(ids).toContain(id)
+    }
   })
 
   it('sections are in reading order', () => {
     const ids = NAV_SECTIONS.map(s => s.id)
-    expect(ids).toEqual(['overview', 'layouts', 'colors', 'shapes', 'direction', 'reference'])
+    expect(ids).toEqual(['overview', 'layouts', 'colors', 'shapes', 'direction', 'mindmap', 'config', 'reference'])
   })
 })
 
@@ -71,10 +68,25 @@ describe('SNIPPETS', () => {
     }
   })
 
-  it('all snippets start with flowchart', () => {
+  it('all snippets start with a known document opener', () => {
     for (const [key, val] of Object.entries(SNIPPETS)) {
-      expect(val.trimStart(), `${key} must start with flowchart`).toMatch(/^flowchart/)
+      expect(
+        val.trimStart(),
+        `${key} must start with flowchart, mindmap, an init directive, or frontmatter`,
+      ).toMatch(/^(flowchart|mindmap|%%\{init|---)/)
     }
+  })
+
+  it('mindmap snippet uses the mermaid mindmap grammar', () => {
+    expect(SNIPPETS.mindmap.trimStart()).toMatch(/^mindmap/)
+    expect(SNIPPETS.mindmap).toContain('::icon(')
+  })
+
+  it('config snippets carry direction, edgeStyle, and theme keys', () => {
+    expect(SNIPPETS.initConfig).toContain('"edgeStyle"')
+    expect(SNIPPETS.initConfig).toContain('"theme"')
+    expect(SNIPPETS.frontmatterConfig).toContain('edgeStyle:')
+    expect(SNIPPETS.frontmatterConfig).toContain('theme.palette:')
   })
 
   it('orthogonal snippet uses TD direction', () => {

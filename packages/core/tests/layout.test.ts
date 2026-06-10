@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { computeOrthogonalLayout } from '../src/layout/orthogonal'
-import { computeCurvedLayout } from '../src/layout/curved'
 import { buildTree } from '../src/tree'
 import { parse } from '../src/parser'
+import type { LayoutNode } from '../src/layout/types'
 import { NODE_HEIGHT, ORTHO_V_GAP } from '../src/design'
 
 const DIAGRAM = `flowchart LR
@@ -11,6 +11,10 @@ const DIAGRAM = `flowchart LR
   root --> b["Section B"]
   a --> a1["Sub 1"]
   a --> a2["Sub 2"]`
+
+function allNodes(root: LayoutNode): LayoutNode[] {
+  return [root, ...root.children.flatMap(allNodes)]
+}
 
 describe('computeOrthogonalLayout()', () => {
   it('returns a LayoutNode tree with the same structure', () => {
@@ -72,34 +76,101 @@ describe('computeOrthogonalLayout()', () => {
   })
 })
 
-describe('computeCurvedLayout()', () => {
-  it('returns a LayoutNode tree with root at center (x≈0, y≈0)', () => {
-    const layout = computeCurvedLayout(buildTree(parse(DIAGRAM)))
-    expect(layout.x).toBeCloseTo(0, 0)
-    expect(layout.y).toBeCloseTo(0, 0)
-  })
-
-  it('children are positioned at a radius > 0', () => {
-    const layout = computeCurvedLayout(buildTree(parse(DIAGRAM)))
+describe('computeOrthogonalLayout() — TD direction', () => {
+  it('children have greater y than root, same-depth nodes share y', () => {
+    const layout = computeOrthogonalLayout(buildTree(parse(DIAGRAM)), 'TD')
     for (const child of layout.children) {
-      const radius = Math.sqrt(child.x ** 2 + child.y ** 2)
-      expect(radius).toBeGreaterThan(0)
+      expect(child.y).toBeGreaterThan(layout.y)
     }
+    const ys = new Set(layout.children.map(c => c.y))
+    expect(ys.size).toBe(1)
   })
 
-  it('grandchildren are at a greater radius than children', () => {
-    const layout = computeCurvedLayout(buildTree(parse(DIAGRAM)))
+  it('depth axis grows monotonically with depth', () => {
+    const layout = computeOrthogonalLayout(buildTree(parse(DIAGRAM)), 'TD')
     const a = layout.children[0]
-    const radiusA = Math.sqrt(a.x ** 2 + a.y ** 2)
     for (const gc of a.children) {
-      const radiusGC = Math.sqrt(gc.x ** 2 + gc.y ** 2)
-      expect(radiusGC).toBeGreaterThan(radiusA)
+      expect(gc.y).toBeGreaterThan(a.y)
+    }
+  })
+})
+
+describe('deep and unbalanced diagrams', () => {
+  const DEEP = `flowchart LR
+  l0["Level 0"]
+  l0 --> l1["Level 1"]
+  l1 --> l2["Level 2"]
+  l2 --> l3["Level 3"]
+  l3 --> l4["Level 4"]
+  l4 --> l5["Level 5"]
+  l5 --> l6["Level 6"]
+  l6 --> l7["Level 7"]`
+
+  it('7-level chain: depth axis strictly increases, no NaN (LR and TD)', () => {
+    for (const dir of ['LR', 'TD'] as const) {
+      const layout = computeOrthogonalLayout(buildTree(parse(DEEP)), dir)
+      let node: LayoutNode | undefined = layout
+      let prev = -Infinity
+      while (node) {
+        const depthAxis = dir === 'LR' ? node.x : node.y
+        expect(Number.isFinite(depthAxis)).toBe(true)
+        expect(depthAxis).toBeGreaterThan(prev)
+        prev = depthAxis
+        node = node.children[0]
+      }
     }
   })
 
-  it('has the same structure as the tree', () => {
-    const layout = computeCurvedLayout(buildTree(parse(DIAGRAM)))
-    expect(layout.children).toHaveLength(2)
-    expect(layout.children[0].children).toHaveLength(2)
+  it('unbalanced tree (one deep branch, one wide branch) has no overlapping siblings', () => {
+    const UNBALANCED = `flowchart LR
+  root["Root"]
+  root --> deep["Deep"]
+  root --> wide["Wide"]
+  deep --> d1["D1"]
+  d1 --> d2["D2"]
+  d2 --> d3["D3"]
+  wide --> w1["W1"]
+  wide --> w2["W2"]
+  wide --> w3["W3"]
+  wide --> w4["W4"]
+  wide --> w5["W5"]
+  wide --> w6["W6"]`
+    const layout = computeOrthogonalLayout(buildTree(parse(UNBALANCED)))
+    // group nodes by depth and assert vertical separation within each column
+    const byDepth = new Map<number, LayoutNode[]>()
+    for (const n of allNodes(layout)) {
+      byDepth.set(n.depth, [...(byDepth.get(n.depth) ?? []), n])
+    }
+    for (const nodes of byDepth.values()) {
+      const sorted = [...nodes].sort((a, b) => a.y - b.y)
+      for (let i = 1; i < sorted.length; i++) {
+        const gap = (sorted[i].y - sorted[i].height / 2) - (sorted[i - 1].y + sorted[i - 1].height / 2)
+        expect(gap).toBeGreaterThanOrEqual(0)
+      }
+    }
+  })
+})
+
+describe('multi-line labels', () => {
+  it('a label with \\n is taller than a single-line label', () => {
+    const src = `flowchart LR
+  root["Root"]
+  root --> a["one line"]`
+    const tree = buildTree(parse(src))
+    tree.children[0].label = 'first line\nsecond line'
+    const layout = computeOrthogonalLayout(tree)
+    expect(layout.children[0].height).toBeGreaterThan(NODE_HEIGHT)
+  })
+
+  it('multi-line width uses the widest line, not the total length', () => {
+    const src = `flowchart LR
+  root["Root"]
+  root --> a["aaaa"]
+  root --> b["bbbb"]`
+    const tree = buildTree(parse(src))
+    tree.children[0].label = 'aaaa\naaaa'
+    const layout = computeOrthogonalLayout(tree)
+    const [a, b] = layout.children
+    expect(a.width).toBeCloseTo(b.width, 1)
   })
 })

@@ -1,4 +1,5 @@
-export const ZOOM_MIN = 0.25
+// Low enough that fit-to-view can shrink large/deep diagrams fully into the canvas
+export const ZOOM_MIN = 0.1
 export const ZOOM_MAX = 4
 
 export function clampZoom(z: number): number {
