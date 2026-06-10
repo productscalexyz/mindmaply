@@ -1,7 +1,7 @@
 interface Props {
   zoom: number
   onChange: (z: number) => void
-  /** Fit the whole diagram in the current canvas view (recompute scale, recenter). */
+  /** Re-fit the diagram: scale it to fill the canvas and re-center it. */
   onFit: () => void
 }
 
