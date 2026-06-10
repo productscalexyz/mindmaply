@@ -15,6 +15,8 @@ export interface SharePayload {
   source: string
   format: 'markdown' | 'mermaid'
   direction: 'LR' | 'TD'
+  /** Edge rendering override. Optional: old links omit it and decode unchanged. */
+  edgeStyle?: 'curved' | 'straight'
   sample?: string
 }
 
@@ -33,11 +35,15 @@ export function decodeShare(param: string): SharePayload | null {
     if (o.direction !== 'TD' && o.direction !== 'LR') return null
     // `sample` is optional and opaque: keep it only if it's a string.
     const sample = typeof o.sample === 'string' ? o.sample : undefined
+    // `edgeStyle` is optional: keep it only if it's a known value.
+    const edgeStyle =
+      o.edgeStyle === 'curved' || o.edgeStyle === 'straight' ? o.edgeStyle : undefined
     return {
       v: 1,
       source: o.source,
       format: o.format,
       direction: o.direction,
+      ...(edgeStyle ? { edgeStyle } : {}),
       ...(sample ? { sample } : {}),
     }
   } catch {

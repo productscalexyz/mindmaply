@@ -1,18 +1,11 @@
 import type { ParsedAST, ValidationError, ValidationResult } from './parser'
+import { parseFrontmatter } from './config'
+import { slugify } from './slug'
 
 // Matches: # Heading … ###### Heading
 const HEADING_RE = /^(#{1,6})\s+(.+)$/
 // Matches: - item / * item / + item (any indent)
 const BULLET_RE = /^(\s*)[-*+]\s+(.+)$/
-
-function slugify(label: string, counter: number): string {
-  const base = label
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-    .slice(0, 20) || 'node'
-  return `${base}_${counter}`
-}
 
 /**
  * Parse a Markdown heading/bullet tree into a ParsedAST.
@@ -25,14 +18,19 @@ function slugify(label: string, counter: number): string {
  * - `  - item` → child of nearest bullet (2 spaces = 1 indent level)
  *
  * Layout defaults to 'curved'. All nodes have shape 'rect'.
+ *
+ * An optional leading `--- ... ---` frontmatter block carries document
+ * config (direction, edgeStyle, theme.*) — see parseFrontmatter in config.ts.
  */
 export function parseMarkdown(source: string): ParsedAST {
+  const { config, body } = parseFrontmatter(source)
   const ast: ParsedAST = {
-    layout: 'curved',
-    direction: 'LR',
+    layout: config.edgeStyle === 'straight' ? 'orthogonal' : 'curved',
+    direction: config.direction ?? 'LR',
     nodes: new Map(),
     edges: [],
     styles: new Map(), // markdown has no style directives
+    config,
   }
 
   let counter = 0
@@ -61,7 +59,7 @@ export function parseMarkdown(source: string): ParsedAST {
     stack.push([depth, id])
   }
 
-  for (const raw of source.split('\n')) {
+  for (const raw of body.split('\n')) {
     const headingMatch = raw.match(HEADING_RE)
     if (headingMatch) {
       const level = headingMatch[1].length
@@ -99,7 +97,10 @@ export function validateMarkdownSource(source: string): ValidationResult {
   const errors: ValidationError[] = []
   let nodeCount = 0
 
-  const lines = source.split('\n')
+  // Frontmatter lines are config, not content — parseFrontmatter blanks them
+  // out while preserving line numbers for the errors below.
+  const { body } = parseFrontmatter(source)
+  const lines = body.split('\n')
   for (let i = 0; i < lines.length; i++) {
     const raw = lines[i]
     if (!raw.trim()) continue

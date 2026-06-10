@@ -1,4 +1,4 @@
-import { PALETTE } from './design'
+import { DEFAULT_THEME, type Theme } from './config'
 import type { ParsedAST } from './parser'
 
 export interface ResolvedStyle {
@@ -53,6 +53,7 @@ function buildNode(
   branchColor: string,
   ast: ParsedAST,
   visited: Set<string>,
+  palette: readonly string[],
 ): TreeNode {
   visited.add(nodeId)
 
@@ -65,8 +66,8 @@ function buildNode(
   childEdges.forEach((edge, i) => {
     if (visited.has(edge.to)) return // guard against cycles
     const childBranchColor =
-      depth === 0 ? PALETTE[i % PALETTE.length] : branchColor
-    children.push(buildNode(edge.to, depth + 1, childBranchColor, ast, visited))
+      depth === 0 ? palette[i % palette.length] : branchColor
+    children.push(buildNode(edge.to, depth + 1, childBranchColor, ast, visited, palette))
   })
 
   return {
@@ -80,7 +81,7 @@ function buildNode(
   }
 }
 
-export function buildTree(ast: ParsedAST): TreeNode {
+export function buildTree(ast: ParsedAST, theme: Theme = DEFAULT_THEME): TreeNode {
   // Root = node with no incoming edges
   const hasIncoming = new Set(ast.edges.map(e => e.to))
   const rootId = [...ast.nodes.keys()].find(id => !hasIncoming.has(id))
@@ -91,5 +92,5 @@ export function buildTree(ast: ParsedAST): TreeNode {
     )
   }
 
-  return buildNode(rootId, 0, '', ast, new Set())
+  return buildNode(rootId, 0, '', ast, new Set(), theme.palette)
 }

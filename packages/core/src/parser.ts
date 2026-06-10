@@ -1,7 +1,13 @@
+import type { DocumentConfig } from './config'
+import { documentConfigFromInit, INIT_DIRECTIVE_RE, blankInitDirective } from './config'
+import { isMindmapSource, parseMindmap, validateMindmap } from './mindmap-parser'
+
 export interface ParsedNode {
   id: string
   label: string
   shape: 'rect' | 'circle' | 'pill'
+  /** Icon name from `::icon(...)` (mindmap syntax) — parsed, not yet rendered */
+  icon?: string
 }
 
 export interface ParsedEdge {
@@ -17,11 +23,14 @@ export interface ParsedStyle {
 }
 
 export interface ParsedAST {
+  /** @deprecated edge style lives in `config.edgeStyle`; kept in sync ('curved' ⇔ edgeStyle 'curved') */
   layout: 'orthogonal' | 'curved'
   direction: 'LR' | 'TD'
   nodes: Map<string, ParsedNode>
   edges: ParsedEdge[]
   styles: Map<string, ParsedStyle>
+  /** Style settings declared in the document (init directive / frontmatter) */
+  config?: DocumentConfig
 }
 
 export interface ValidationError {
@@ -47,8 +56,6 @@ const BARE_RE = /^(\w+)$/
 const EDGE_LINE_RE = /^(.+?)\s*-->\s*(.+)$/
 // Matches: style nodeId key:value,...
 const STYLE_LINE_RE = /^style\s+(\w+)\s+(.+)$/
-// Matches: %%{init: {...}}%%
-const INIT_RE = /%%\{init:\s*(\{[\s\S]*?\})\s*\}%%/
 // Matches: flowchart TD / flowchart LR (TB is Mermaid's alias for TD)
 const FLOWCHART_RE = /^flowchart\s+(\w+)$/i
 
@@ -79,26 +86,46 @@ function parseStyleValue(raw: string): ParsedStyle {
   return style
 }
 
+// Extract the `%%{init: {"mindmaply": {...}}}%%` document config, if any.
+// Malformed JSON is ignored — config never breaks a document.
+function extractInitConfig(source: string): DocumentConfig {
+  const initMatch = source.match(INIT_DIRECTIVE_RE)
+  if (!initMatch) return {}
+  try {
+    const cfg = JSON.parse(initMatch[1]) as Record<string, unknown>
+    const mp = cfg['mindmaply'] as Record<string, unknown> | undefined
+    return mp ? documentConfigFromInit(mp) : {}
+  } catch {
+    return {}
+  }
+}
+
 export function parse(source: string): ParsedAST {
+  const config = extractInitConfig(source)
+  source = blankInitDirective(source)
+
+  // Mermaid `mindmap` blocks are a distinct grammar with its own parser.
+  // Detection lives here so render(), the editor, and share links all
+  // accept both flowchart and mindmap sources through one entry point.
+  if (isMindmapSource(source)) {
+    const ast = parseMindmap(source)
+    ast.config = config
+    if (config.edgeStyle) ast.layout = config.edgeStyle === 'curved' ? 'curved' : 'orthogonal'
+    if (config.direction) ast.direction = config.direction
+    return ast
+  }
+
   const ast: ParsedAST = {
     layout: 'orthogonal',
     direction: 'LR',
     nodes: new Map(),
     edges: [],
     styles: new Map(),
+    config,
   }
 
-  // Extract init directive before line splitting
-  const initMatch = source.match(INIT_RE)
-  if (initMatch) {
-    try {
-      const cfg = JSON.parse(initMatch[1]) as Record<string, unknown>
-      const mp = cfg['mindmaply'] as Record<string, unknown> | undefined
-      if (mp?.['layout'] === 'curved') ast.layout = 'curved'
-    } catch {
-      // malformed JSON — ignore, keep default
-    }
-  }
+  if (config.edgeStyle) ast.layout = config.edgeStyle === 'curved' ? 'curved' : 'orthogonal'
+  if (config.direction) ast.direction = config.direction
 
   function registerNode(node: ParsedNode) {
     if (!ast.nodes.has(node.id)) ast.nodes.set(node.id, node)
@@ -150,6 +177,9 @@ export function parse(source: string): ParsedAST {
  * would be ignored, plus structural problems like a missing root node.
  */
 export function validateMermaid(source: string): ValidationResult {
+  source = blankInitDirective(source)
+  if (isMindmapSource(source)) return validateMindmap(source)
+
   const errors: ValidationError[] = []
   const nodes = new Set<string>()
   const hasIncoming = new Set<string>()

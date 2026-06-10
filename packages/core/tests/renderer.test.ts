@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { renderSVG } from '../src/renderer/index'
 import { computeOrthogonalLayout } from '../src/layout/orthogonal'
-import { computeCurvedLayout } from '../src/layout/curved'
 import { buildTree } from '../src/tree'
 import { parse } from '../src/parser'
+import { DEFAULT_THEME } from '../src/config'
 
 const SIMPLE = `flowchart LR
   root["Site"]
@@ -11,11 +11,8 @@ const SIMPLE = `flowchart LR
   root --> b["Section B"]
   a --> a1["Sub 1"]`
 
-function getLayout(src: string, mode: 'orthogonal' | 'curved' = 'orthogonal') {
-  const tree = buildTree(parse(src))
-  return mode === 'orthogonal'
-    ? computeOrthogonalLayout(tree)
-    : computeCurvedLayout(tree)
+function getLayout(src: string, direction: 'LR' | 'TD' = 'LR') {
+  return computeOrthogonalLayout(buildTree(parse(src)), direction)
 }
 
 describe('renderSVG()', () => {
@@ -70,15 +67,14 @@ describe('renderSVG()', () => {
     expect(svg).not.toContain('NaN')
   })
 
-  it('works with curved layout', () => {
-    const src = `%%{init: {"mindmaply": {"layout": "curved"}}}%%\n${SIMPLE}`
-    const svg = renderSVG(getLayout(src, 'curved'), { layout: 'curved' })
+  it('works with curved edges', () => {
+    const svg = renderSVG(getLayout(SIMPLE), { edgeStyle: 'curved' })
     expect(svg).toContain('Site')
     expect(svg).not.toContain('NaN')
   })
 
-  it('orthogonal edges use H-V-H elbow paths, no bezier', () => {
-    const svg = renderSVG(getLayout(SIMPLE), { layout: 'orthogonal' })
+  it('straight edges use H-V-H elbow paths, no bezier', () => {
+    const svg = renderSVG(getLayout(SIMPLE), { edgeStyle: 'straight' })
     // Fan renderer emits one full H-V-H path per edge, all straight lines, no C command.
     expect(svg).not.toContain(' C ')
     const pathDs = [...svg.matchAll(/d="([^"]+)"/g)].map(m => m[1])
@@ -88,8 +84,8 @@ describe('renderSVG()', () => {
     expect(edgePaths.length).toBeGreaterThanOrEqual(3)
   })
 
-  it('orthogonal fan uses unique exit-y ports per sibling (no shared origin point)', () => {
-    const svg = renderSVG(getLayout(SIMPLE), { layout: 'orthogonal' })
+  it('straight fan uses unique exit-y ports per sibling (no shared origin point)', () => {
+    const svg = renderSVG(getLayout(SIMPLE), { edgeStyle: 'straight' })
     // root has 2 children (a, b). Their paths should start at different y values.
     const pathDs = [...svg.matchAll(/d="M ([\d.-]+) ([\d.-]+) H/g)]
     const startYs = pathDs.map(m => parseFloat(m[2]))
@@ -99,16 +95,80 @@ describe('renderSVG()', () => {
   })
 
   it('curved edges use cubic bezier paths (C command)', () => {
-    const svg = renderSVG(getLayout(SIMPLE, 'curved'), { layout: 'curved' })
+    const svg = renderSVG(getLayout(SIMPLE), { edgeStyle: 'curved' })
     const pathDs = [...svg.matchAll(/d="([^"]+)"/g)].map(m => m[1])
     const edgePaths = pathDs.filter(d => d.startsWith('M') && d.includes(' C '))
     expect(edgePaths.length).toBeGreaterThanOrEqual(3)
     edgePaths.forEach(d => expect(d).toContain(' C '))
   })
 
-  it('orthogonal and curved produce different edge SVG output', () => {
-    const ortho = renderSVG(getLayout(SIMPLE), { layout: 'orthogonal' })
-    const curved = renderSVG(getLayout(SIMPLE, 'curved'), { layout: 'curved' })
-    expect(ortho).not.toEqual(curved)
+  it('straight and curved produce different edge SVG output', () => {
+    const straight = renderSVG(getLayout(SIMPLE), { edgeStyle: 'straight' })
+    const curved = renderSVG(getLayout(SIMPLE), { edgeStyle: 'curved' })
+    expect(straight).not.toEqual(curved)
+  })
+})
+
+describe('renderSVG() — curved + TD', () => {
+  it('curved TD edges leave the parent bottom with a vertical tangent', () => {
+    const layout = getLayout(SIMPLE, 'TD')
+    const svg = renderSVG(layout, { edgeStyle: 'curved', direction: 'TD' })
+    const beziers = [...svg.matchAll(/d="M ([\d.-]+) ([\d.-]+) C ([\d.-]+) ([\d.-]+),/g)]
+    expect(beziers.length).toBeGreaterThanOrEqual(3)
+    for (const m of beziers) {
+      // vertical tangent: the first control point shares the start x
+      expect(parseFloat(m[3])).toBeCloseTo(parseFloat(m[1]), 5)
+    }
+  })
+
+  it('root→child curved TD edges start at the root bottom edge', () => {
+    const layout = getLayout(SIMPLE, 'TD')
+    const svg = renderSVG(layout, { edgeStyle: 'curved', direction: 'TD' })
+    const rootBottom = layout.y + layout.height / 2
+    const starts = [...svg.matchAll(/d="M ([\d.-]+) ([\d.-]+) C/g)].map(m => parseFloat(m[2]))
+    expect(starts.some(y => Math.abs(y - rootBottom) < 0.001)).toBe(true)
+  })
+})
+
+describe('renderSVG() — themes', () => {
+  it('theme colors and fonts appear in the output', () => {
+    const theme = {
+      ...DEFAULT_THEME,
+      canvasBg: '#101214',
+      rootBg: '#1B1E22',
+      textColor: '#E2E8F0',
+      fontFamily: 'Georgia, serif',
+      fontSize: 14,
+    }
+    const svg = renderSVG(getLayout(SIMPLE), { theme })
+    expect(svg).toContain('#101214')
+    expect(svg).toContain('#1B1E22')
+    expect(svg).toContain('#E2E8F0')
+    expect(svg).toContain('Georgia, serif')
+    expect(svg).toContain('font-size="14"')
+    expect(svg).not.toContain('#F4F5F7')
+  })
+
+  it('default theme output matches the no-theme output exactly', () => {
+    const withDefault = renderSVG(getLayout(SIMPLE), { theme: DEFAULT_THEME })
+    const without = renderSVG(getLayout(SIMPLE))
+    expect(withDefault).toEqual(without)
+  })
+})
+
+describe('renderSVG() — multi-line labels', () => {
+  it('labels with \\n render as one tspan per line', () => {
+    const tree = buildTree(parse(SIMPLE))
+    tree.children[0].label = 'On effectiveness\nand features'
+    const layout = computeOrthogonalLayout(tree)
+    const svg = renderSVG(layout)
+    expect(svg).toContain('<tspan')
+    expect(svg).toContain('On effectiveness')
+    expect(svg).toContain('and features')
+  })
+
+  it('single-line labels render without tspans', () => {
+    const svg = renderSVG(getLayout(SIMPLE))
+    expect(svg).not.toContain('<tspan')
   })
 })
