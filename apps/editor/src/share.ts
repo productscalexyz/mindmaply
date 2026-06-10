@@ -1,47 +1,33 @@
 import {
-  compressToEncodedURIComponent,
-  decompressFromEncodedURIComponent,
-} from 'lz-string'
-import type { SampleId, Direction } from './samples'
+  encodeShare,
+  decodeShare,
+  buildShareUrl as coreBuildShareUrl,
+  buildEmbedUrl as coreBuildEmbedUrl,
+  type SharePayload,
+} from 'mindmaply-core'
 
-// The full editor state needed to faithfully reproduce a shared diagram.
-// `sample` is encoded (not just the source text) so the layout
-// (SAMPLES[sample].layout) and the canvas info badge are reproduced too.
-export interface SharePayload {
-  v: 1
-  source: string
-  format: 'markdown' | 'mermaid'
-  direction: Direction
-  sample: SampleId
+// Encoding/validation now lives in mindmaply-core so the editor and the render
+// API produce byte-identical links. This module keeps only the browser-only
+// glue (reading the current URL, supplying window.location as the base).
+export { encodeShare, decodeShare }
+export type { SharePayload }
+
+// `${origin}${pathname}` is the part before the hash — e.g. on GitHub Pages
+// custom domains this is "https://mindmaply.app/".
+function currentBase(): string {
+  return `${window.location.origin}${window.location.pathname}`
 }
 
-export function encodeShare(p: SharePayload): string {
-  return compressToEncodedURIComponent(JSON.stringify(p))
+export function buildShareUrl(p: SharePayload): string {
+  return coreBuildShareUrl(p, currentBase())
 }
 
-export function decodeShare(param: string): SharePayload | null {
-  try {
-    const json = decompressFromEncodedURIComponent(param)
-    if (!json) return null
-    const o = JSON.parse(json)
-    // Whitelist-validate every field; anything unexpected -> null (safe fallback)
-    if (typeof o.source !== 'string') return null
-    if (o.format !== 'markdown' && o.format !== 'mermaid') return null
-    if (o.direction !== 'TD' && o.direction !== 'LR') return null
-    if (o.sample !== 'org' && o.sample !== 'mm' && o.sample !== 'proc') return null
-    return {
-      v: 1,
-      source: o.source,
-      format: o.format,
-      direction: o.direction,
-      sample: o.sample,
-    }
-  } catch {
-    return null
-  }
+export function buildEmbedUrl(p: SharePayload): string {
+  return coreBuildEmbedUrl(p, currentBase())
 }
 
-// Read the `d` param from the hash route (e.g. "#/editor?d=...") at first render.
+// Read the `d` param from the hash route (e.g. "#/editor?d=..." or
+// "#/embed?d=...") at first render.
 export function readSharedFromUrl(): SharePayload | null {
   const q = window.location.hash.split('?')[1]
   if (!q) return null
@@ -49,6 +35,13 @@ export function readSharedFromUrl(): SharePayload | null {
   return d ? decodeShare(d) : null
 }
 
-export function buildShareUrl(p: SharePayload): string {
-  return `${window.location.origin}${window.location.pathname}#/editor?d=${encodeShare(p)}`
+// Base URL for the render API. Empty until the Cloudflare Worker is live; when
+// set (e.g. "https://api.mindmaply.app"), the Share modal also offers a static
+// <img> embed snippet.
+export const API_BASE = ''
+
+export function buildImgEmbedCode(p: SharePayload): string | null {
+  if (!API_BASE) return null
+  const url = `${API_BASE}/svg?d=${encodeShare(p)}`
+  return `<img src="${url}" alt="mindmap" />`
 }

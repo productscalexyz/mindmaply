@@ -67,6 +67,16 @@ export function validate(source: string, format: 'mermaid' | 'markdown'): Valida
 // Named exports for editor format switching
 export { parse, parseMarkdown, toMarkdown, toMermaid }
 
+// Share-link encoding — kept in core so the editor and the render API produce
+// byte-identical URLs from the same payload (no drift between repos).
+export {
+  encodeShare,
+  decodeShare,
+  buildShareUrl,
+  buildEmbedUrl,
+  type SharePayload,
+} from './share'
+
 // Re-export types for consumers
 export type { ParsedAST, ValidationError, ValidationResult } from './parser'
 export type { TreeNode, ResolvedStyle } from './tree'

@@ -11,6 +11,10 @@ interface Props {
   direction: Direction
   onShare: () => void
   onExport: () => void
+  /** Embed mode: hide editor actions + info badge, show a small attribution link. */
+  embed?: boolean
+  /** Link back to the full editor for the "Made with mindmaply" credit (embed mode). */
+  shareUrl?: string
 }
 
 function computeFitZoom(svgStr: string, el: HTMLDivElement): number {
@@ -34,6 +38,8 @@ export default function Canvas({
   direction,
   onShare,
   onExport,
+  embed = false,
+  shareUrl,
 }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null)
   const config = SAMPLES[sample]
@@ -125,30 +131,46 @@ export default function Canvas({
         />
       </div>
 
-      {/* top-right: actions */}
-      <div className="canvas-actions">
-        <button className="ca-btn ca-export" onClick={onExport}>
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-            <path d="M8 2v9M5 8l3 3 3-3M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Export
-        </button>
-        <button className="ca-btn ca-share" onClick={onShare}>
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-            <path d="M10 2l4 4-4 4M14 6H6a4 4 0 000 8h1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Share
-        </button>
-      </div>
+      {/* top-right: actions (editor only) */}
+      {!embed && (
+        <div className="canvas-actions">
+          <button className="ca-btn ca-export" onClick={onExport}>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+              <path d="M8 2v9M5 8l3 3 3-3M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Export
+          </button>
+          <button className="ca-btn ca-share" onClick={onShare}>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+              <path d="M10 2l4 4-4 4M14 6H6a4 4 0 000 8h1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Share
+          </button>
+        </div>
+      )}
 
       {/* bottom-right: zoom */}
       <ZoomCluster zoom={zoom} onChange={onZoomChange} />
 
-      {/* bottom-left: info badge */}
-      <div className="canvas-info">
-        <div className="ci-dot" style={{ background: config.color }} />
-        <span className="ci-text">{config.info(direction)}</span>
-      </div>
+      {/* bottom-left: info badge (editor only — sample-specific text) */}
+      {!embed && (
+        <div className="canvas-info">
+          <div className="ci-dot" style={{ background: config.color }} />
+          <span className="ci-text">{config.info(direction)}</span>
+        </div>
+      )}
+
+      {/* embed: unobtrusive attribution / funnel back to the editor */}
+      {embed && (
+        <a
+          className="embed-credit"
+          href={shareUrl ?? 'https://mindmaply.app'}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Made with mindmaply
+        </a>
+      )}
     </div>
   )
 }
