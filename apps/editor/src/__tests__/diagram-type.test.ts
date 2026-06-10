@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { parse, parseMarkdown, toMarkdown, toMermaid } from 'mindmaply-core'
 import { diagramType, DIAGRAM_TYPE_COLORS } from '../diagram-type'
 import { SAMPLES, getSampleSource } from '../samples'
 
@@ -12,8 +13,20 @@ describe('diagramType()', () => {
     expect(diagramType(getSampleSource('batman', 'TD'), 'mermaid')).toBe('mindmap')
   })
 
-  it('markdown outlines draw a mind map', () => {
+  it('markdown defaults to mindmap; diagram: frontmatter overrides', () => {
     expect(diagramType('# Root\n- a', 'markdown')).toBe('mindmap')
+    expect(diagramType('---\ndiagram: flowchart\n---\n# Root\n- a', 'markdown')).toBe('flowchart')
+  })
+
+  it('the type survives the language tab switch (no syntax ↔ type link)', () => {
+    for (const id of ['org', 'mm', 'proc', 'batman'] as const) {
+      const mermaidSrc = getSampleSource(id, 'TD')
+      const type = diagramType(mermaidSrc, 'mermaid')
+      const md = toMarkdown(parse(mermaidSrc))
+      expect(diagramType(md, 'markdown'), `${id} mermaid→markdown`).toBe(type)
+      const back = toMermaid(parseMarkdown(md))
+      expect(diagramType(back, 'mermaid'), `${id} markdown→mermaid`).toBe(type)
+    }
   })
 
   it('classifies all samples by what they draw', () => {

@@ -122,6 +122,7 @@ mindmap
     Branch two`,
 
   frontmatterConfig: `---
+diagram: mindmap
 direction: TD
 edgeStyle: straight
 theme.palette: #4B96E6, #B355D0, #55A996

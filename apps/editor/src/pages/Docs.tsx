@@ -216,6 +216,14 @@ export default function Docs() {
               keys keep the default look. Invalid values are ignored — config never breaks a
               diagram.
             </div>
+            <div className="docs-note">
+              There is no link between language and diagram type. In mermaid the grammar
+              declares the type (<code>flowchart</code> header vs <code>mindmap</code> block);
+              in markdown it is the <code>diagram:</code> frontmatter key
+              (<code>flowchart</code> or <code>mindmap</code>, default <code>mindmap</code>).
+              Switching languages keeps the type — a flowchart stays a flowchart in markdown
+              and converts back to flowchart grammar.
+            </div>
           </section>
 
           {/* ── Reference ── */}
