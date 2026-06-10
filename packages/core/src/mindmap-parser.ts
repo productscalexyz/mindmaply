@@ -75,6 +75,7 @@ export function parseMindmap(source: string): ParsedAST {
   const ast: ParsedAST = {
     layout: 'curved',
     direction: 'LR',
+    diagramType: 'mindmap',
     nodes: new Map(),
     edges: [],
     styles: new Map(), // mindmap syntax has no style directives
