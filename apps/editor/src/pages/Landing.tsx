@@ -74,6 +74,14 @@ export default function Landing() {
       </nav>
 
       <header className="landing-hero">
+        <a
+          href="https://github.com/productscalexyz/mindmaply"
+          className="landing-badge"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Free &amp; open source · MIT License
+        </a>
         <h1>Text to beautiful diagrams.</h1>
         <p>
           Write Markdown or Mermaid. Get presentation-quality mind maps, org charts,
@@ -171,13 +179,13 @@ export default function Landing() {
       </section>
 
       <section className="landing-oss">
-        <h2>Open source, all the way down</h2>
+        <h2>Free and open source, all the way down</h2>
         <p>
-          Mindmaply brings open-source software to beautiful diagramming. At its heart is{' '}
-          <code>mindmaply-core</code>, a pure-function engine that turns Markdown or Mermaid.js
-          into presentation-quality SVG. No DOM, no canvas, no closed ecosystem: it runs in the
-          browser, in Node, in your CI, or inside an AI pipeline. The editor you see above is just
-          one consumer of it.
+          Mindmaply is free to use and MIT-licensed — no accounts, no paywalls, no premium tier.
+          At its heart is <code>mindmaply-core</code>, a pure-function engine that turns Markdown
+          or Mermaid.js into presentation-quality SVG. No DOM, no canvas, no closed ecosystem: it
+          runs in the browser, in Node, in your CI, or inside an AI pipeline. The editor you see
+          above is just one consumer of it.
         </p>
         <a href="https://github.com/productscalexyz/mindmaply" className="landing-gh" target="_blank" rel="noreferrer">
           Star us on GitHub →
@@ -200,6 +208,7 @@ export default function Landing() {
           <Link to="/editor" className="docs-link">Editor</Link>
           <Link to="/docs" className="docs-link">Docs</Link>
           <a href="https://github.com/productscalexyz/mindmaply" className="docs-link" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://github.com/productscalexyz/mindmaply/blob/main/LICENSE" className="docs-link" target="_blank" rel="noreferrer">MIT License</a>
         </div>
       </footer>
     </div>
