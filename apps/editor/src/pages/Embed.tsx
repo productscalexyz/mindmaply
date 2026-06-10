@@ -3,7 +3,6 @@ import Canvas from '../components/Canvas'
 import { readSharedFromUrl, buildShareUrl } from '../share'
 import { renderFromPayload } from '../render'
 import { clampZoom } from '../zoom'
-import type { SampleId, Direction } from '../samples'
 
 // Chrome-less, canvas-only view meant to be dropped into an <iframe> on a
 // third-party page (#/embed?d=...). Reuses the editor's Canvas (zoom/pan) but
@@ -33,8 +32,6 @@ export default function Embed() {
         svg={svg}
         zoom={zoom}
         onZoomChange={(z) => setZoom(clampZoom(z))}
-        sample={(payload.sample as SampleId) ?? 'org'}
-        direction={payload.direction as Direction}
         onShare={() => {}}
         onExport={() => {}}
         embed

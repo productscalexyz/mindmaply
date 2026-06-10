@@ -1,5 +1,4 @@
 import { useRef, useEffect, useCallback, useState } from 'react'
-import { SAMPLES, type SampleId, type Direction } from '../samples'
 import ZoomCluster from './ZoomCluster'
 import { clampZoom } from '../zoom'
 
@@ -7,8 +6,8 @@ interface Props {
   svg: string
   zoom: number
   onZoomChange: (z: number) => void
-  sample: SampleId
-  direction: Direction
+  /** Info badge content (diagram kind + stats). Hidden when absent or in embed mode. */
+  info?: { color: string; text: string }
   onShare: () => void
   onExport: () => void
   /** Embed mode: hide editor actions + info badge, show a small attribution link. */
@@ -34,15 +33,13 @@ export default function Canvas({
   svg,
   zoom,
   onZoomChange,
-  sample,
-  direction,
+  info,
   onShare,
   onExport,
   embed = false,
   shareUrl,
 }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null)
-  const config = SAMPLES[sample]
 
   // Pan offset (screen px) applied before the zoom scale; lets the user
   // click-drag the diagram around the canvas.
@@ -150,13 +147,13 @@ export default function Canvas({
       )}
 
       {/* bottom-right: zoom */}
-      <ZoomCluster zoom={zoom} onChange={onZoomChange} />
+      <ZoomCluster zoom={zoom} onChange={onZoomChange} onFit={handleFit} />
 
-      {/* bottom-left: info badge (editor only — sample-specific text) */}
-      {!embed && (
+      {/* bottom-left: info badge (editor only — diagram kind + live stats) */}
+      {!embed && info && (
         <div className="canvas-info">
-          <div className="ci-dot" style={{ background: config.color }} />
-          <span className="ci-text">{config.info(direction)}</span>
+          <div className="ci-dot" style={{ background: info.color }} />
+          <span className="ci-text">{info.text}</span>
         </div>
       )}
 

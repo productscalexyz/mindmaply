@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { validate } from 'mindmaply-core'
 import { getSampleSource, SAMPLES } from '../samples'
 
 describe('getSampleSource', () => {
@@ -23,20 +24,46 @@ describe('getSampleSource', () => {
 })
 
 describe('SAMPLES metadata', () => {
-  it('org supports direction', () => {
+  it('org ships TD/LR source variants', () => {
     expect(SAMPLES.org.supportsDirection).toBe(true)
   })
-  it('mm does not support direction', () => {
-    expect(SAMPLES.mm.supportsDirection).toBe(false)
+  it('mm prefers curved edges', () => {
+    expect(SAMPLES.mm.edgeStyle).toBe('curved')
   })
-  it('proc does not support direction', () => {
-    expect(SAMPLES.proc.supportsDirection).toBe(false)
+  it('org and proc prefer straight edges', () => {
+    expect(SAMPLES.org.edgeStyle).toBe('straight')
+    expect(SAMPLES.proc.edgeStyle).toBe('straight')
   })
-  it('mm uses curved layout', () => {
-    expect(SAMPLES.mm.layout).toBe('curved')
+})
+
+describe('batman sample (mermaid mindmap syntax)', () => {
+  it('uses the mermaid mindmap block grammar', () => {
+    const src = getSampleSource('batman', 'LR')
+    expect(src).toContain('mindmap')
+    expect(src).toContain('root((Batman))')
   })
-  it('org and proc use orthogonal layout', () => {
-    expect(SAMPLES.org.layout).toBe('orthogonal')
-    expect(SAMPLES.proc.layout).toBe('orthogonal')
+  it('validates cleanly as mermaid', () => {
+    const src = getSampleSource('batman', 'LR')
+    expect(validate(src, 'mermaid')).toEqual({ valid: true, errors: [] })
+  })
+  it('prefers curved edges', () => {
+    expect(SAMPLES.batman.edgeStyle).toBe('curved')
+  })
+})
+
+describe('default theme in samples', () => {
+  it('every sample carries the editable theme directive', () => {
+    for (const id of Object.keys(SAMPLES) as Array<keyof typeof SAMPLES>) {
+      const src = getSampleSource(id, 'TD')
+      expect(src, `${id} must carry the theme directive`).toContain('%%{init:')
+      expect(src).toContain('"palette"')
+    }
+  })
+  it('all samples still validate with the theme directive', () => {
+    for (const id of Object.keys(SAMPLES) as Array<keyof typeof SAMPLES>) {
+      for (const dir of ['TD', 'LR'] as const) {
+        expect(validate(getSampleSource(id, dir), 'mermaid').valid, `${id} ${dir}`).toBe(true)
+      }
+    }
   })
 })

@@ -1,9 +1,11 @@
 interface Props {
   zoom: number
   onChange: (z: number) => void
+  /** Fit the whole diagram in the current canvas view (recompute scale, recenter). */
+  onFit: () => void
 }
 
-export default function ZoomCluster({ zoom, onChange }: Props) {
+export default function ZoomCluster({ zoom, onChange, onFit }: Props) {
   const pct = `${Math.round(zoom * 100)}%`
 
   return (
@@ -16,7 +18,7 @@ export default function ZoomCluster({ zoom, onChange }: Props) {
         +
       </button>
       <div className="zc-sep" />
-      <button className="zc-fit" onClick={() => onChange(1)}>Fit</button>
+      <button className="zc-fit" title="Fit diagram to view" onClick={onFit}>Fit</button>
       <div className="zc-sep" />
       <button className="zc-fit" onClick={() => onChange(0.5)}>50%</button>
       <button

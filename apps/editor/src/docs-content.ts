@@ -56,6 +56,8 @@ export const NAV_SECTIONS: NavSection[] = [
   { id: 'colors',    label: 'Color Palette' },
   { id: 'shapes',    label: 'Shapes' },
   { id: 'direction', label: 'Direction' },
+  { id: 'mindmap',   label: 'Mindmap Syntax' },
+  { id: 'config',    label: 'Config & Themes' },
   { id: 'reference', label: 'Full Reference' },
 ]
 
@@ -92,6 +94,43 @@ export const SNIPPETS = {
 
   directionLR: `flowchart LR
     A[Start] --> B[Process] --> C[End]`,
+
+  mindmap: `mindmap
+  root((mindmap))
+    Origins
+      Long history
+      ::icon(fa fa-book)
+      Popularisation
+    Research
+      On effectiveness<br/>and features
+    Tools
+      Pen and paper
+      Mermaid`,
+
+  initConfig: `%%{init: {"mindmaply": {
+  "direction": "TD",
+  "edgeStyle": "curved",
+  "theme": {
+    "palette": ["#4B96E6", "#B355D0", "#55A996"],
+    "fontFamily": "Georgia, serif",
+    "fontSize": 14
+  }
+}}}%%
+mindmap
+  root((Idea))
+    Branch one
+    Branch two`,
+
+  frontmatterConfig: `---
+direction: TD
+edgeStyle: straight
+theme.palette: #4B96E6, #B355D0, #55A996
+theme.fontFamily: Georgia, serif
+theme.fontSize: 14
+---
+# Idea
+- Branch one
+- Branch two`,
 } as const satisfies Record<string, string>
 
 export type Snippets = typeof SNIPPETS
