@@ -150,7 +150,7 @@ export default function Canvas({
       )}
 
       {/* bottom-right: zoom */}
-      <ZoomCluster zoom={zoom} onChange={onZoomChange} />
+      <ZoomCluster zoom={zoom} onChange={onZoomChange} onFit={handleFit} />
 
       {/* bottom-left: info badge (editor only — sample-specific text) */}
       {!embed && (
