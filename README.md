@@ -1,7 +1,6 @@
 # mindmaply
 
 [![CI](https://github.com/productscalexyz/mindmaply/actions/workflows/ci.yml/badge.svg)](https://github.com/productscalexyz/mindmaply/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/mindmaply-core)](https://www.npmjs.com/package/mindmaply-core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 Render Mermaid flowcharts and Markdown outlines as beautiful, Whimsical-quality SVG mind maps.
@@ -16,15 +15,18 @@ A pnpm monorepo with a clean split between the **rendering engine** and the **we
 
 | Path | What it is |
 | --- | --- |
-| [`packages/core`](./packages/core) | **`mindmaply-core`** — the framework-agnostic rendering engine, published to [npm](https://www.npmjs.com/package/mindmaply-core). Parser → tree → layout → SVG. One runtime dependency (`d3-hierarchy`). No DOM, no React. |
+| [`packages/core`](./packages/core) | **`mindmaply-core`** — the framework-agnostic rendering engine (npm-publishable, not yet published). Parser → tree → layout → SVG. One runtime dependency (`d3-hierarchy`). No DOM, no React. |
 | [`apps/editor`](./apps/editor) | The web app at mindmaply.app — a React frontend (landing page, live editor, and docs) that consumes `mindmaply-core`. Format switching (Mermaid ⇄ Markdown), sharing, zoom/pan. |
 
 The engine knows nothing about the app; the app depends on the engine via the workspace. You can use `mindmaply-core` standalone in any JS/TS project.
 
 ## Use the library
 
+`mindmaply-core` isn't on npm yet — build it from this repo and consume it via
+the workspace (or a local `file:`/`pnpm link`):
+
 ```bash
-npm install mindmaply-core
+pnpm install && pnpm --filter mindmaply-core build
 ```
 
 ```ts
