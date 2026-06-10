@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { render } from 'mindmaply-core'
 import { highlight } from '../highlight'
+import { buildEmbedUrl } from '../share'
 
 // The hero demo's content IS the value story — rendered live by mindmaply-core.
 const DEMO_SOURCE = `flowchart LR
@@ -15,7 +16,7 @@ const DEMO_SOURCE = `flowchart LR
   B --> B1["Auto-colored branches"]
   B --> B2["Curated palette"]
   C --> C1["Valid Mermaid anywhere"]
-  C --> C2["Version-control friendly"]
+  C --> C2["Share with just a URL"]
   D --> D1["No dragging, no aligning"]
   D --> D2["Diagram out, instantly"]`
 
@@ -46,14 +47,12 @@ export default function Landing() {
   // DEMO_SOURCE constant — highlight() HTML-escapes its input and render()
   // emits our own SVG. No user input flows in.
   const highlighted = useMemo(() => highlight(DEMO_SOURCE, 'mermaid'), [])
-  const svg = useMemo(() => {
-    try {
-      return render(DEMO_SOURCE, { layout: 'curved' })
-    } catch (err) {
-      console.error('mindmaply-core render error:', err)
-      return ''
-    }
-  }, [])
+  // The demo canvas is the real embed view in an iframe — the same snippet the
+  // Share modal hands out, so the demo doubles as proof of the embed feature.
+  const embedSrc = useMemo(
+    () => buildEmbedUrl({ v: 1, source: DEMO_SOURCE, format: 'mermaid', direction: 'LR' }),
+    [],
+  )
   const roadmapSvg = useMemo(() => {
     try {
       return render(ROADMAP_SOURCE, { layout: 'orthogonal' })
@@ -69,17 +68,21 @@ export default function Landing() {
         <Brand />
         <div className="landing-nav-links">
           <Link to="/docs" className="docs-link">Docs</Link>
+          <a href="https://github.com/productscalexyz/mindmaply" className="docs-link" target="_blank" rel="noreferrer">GitHub</a>
           <Link to="/editor" className="landing-cta landing-cta-sm">Open Editor</Link>
         </div>
       </nav>
 
       <header className="landing-hero">
-        <h1>From Markdown &amp; Mermaid<br />to beautiful open source diagrams.</h1>
-        <p>Plain text in, presentation-quality diagrams out — instantly.</p>
+        <h1>Text to beautiful diagrams.</h1>
+        <p>
+          Write Markdown or Mermaid. Get presentation-quality mind maps, org charts,
+          and flowcharts in an instant, with zero dragging or aligning.
+        </p>
         <Link to="/editor" className="landing-cta">Open Editor →</Link>
       </header>
 
-      <section className="landing-demo">
+      <section className="landing-demo landing-demo-tight">
         <div className="landing-demo-code">
           <div className="landing-demo-bar">
             <div className="tl"><span className="tl-r" /><span className="tl-y" /><span className="tl-g" /></div>
@@ -87,21 +90,84 @@ export default function Landing() {
           </div>
           <pre dangerouslySetInnerHTML={{ __html: highlighted }} />
         </div>
-        <div className="landing-demo-canvas">
-          {svg
-            ? <div className="landing-demo-svg" dangerouslySetInnerHTML={{ __html: svg }} />
-            : <span className="landing-demo-empty">diagram preview</span>}
+        <div className="landing-demo-canvas has-embed">
+          <iframe
+            className="landing-demo-embed"
+            src={embedSrc}
+            title="Live Mindmaply embed"
+            loading="lazy"
+          />
+        </div>
+      </section>
+      <p className="landing-demo-caption">
+        This is a live, interactive embed. Pan and zoom it, or drop the same iframe into any page.
+      </p>
+
+      <section className="landing-trio">
+        <h2>Why diagrams as code beats drag-and-drop</h2>
+        <p className="landing-trio-intro">
+          Diagrams as code, diagrams as text: a few lines of Markdown or Mermaid.js,
+          zero dragging, aligning, or design decisions.
+        </p>
+        <div className="landing-trio-grid">
+          <div className="landing-trio-card">
+            <h3><span className="landing-trio-dot" style={{ background: 'var(--b1)' }} />Write text, not drag boxes</h3>
+            <p>
+              The same text always produces the same diagram. No arranging shapes,
+              and AI assistants can write your diagrams for you.
+            </p>
+          </div>
+          <div className="landing-trio-card">
+            <h3><span className="landing-trio-dot" style={{ background: 'var(--b2)' }} />Beautiful by default, not by effort</h3>
+            <p>
+              Auto-colored branches, a curated palette, and smart layouts.
+              Every design decision is already made.
+            </p>
+          </div>
+          <div className="landing-trio-card">
+            <h3><span className="landing-trio-dot" style={{ background: 'var(--b3)' }} />Two dialects, one diagram</h3>
+            <p>
+              Write a Markdown outline or standard Mermaid.js. Mindmaply renders
+              both and converts between them.
+            </p>
+          </div>
         </div>
       </section>
 
-      <section className="landing-why">
-        <h2>Why we built it</h2>
-        <ul>
-          <li><span className="landing-why-dot" style={{ background: 'var(--b1)' }} />AI assistants and engineers write diagrams as text, but text-first tools render them poorly.</li>
-          <li><span className="landing-why-dot" style={{ background: 'var(--b2)' }} />Beautiful tools mean dragging, aligning, and closed ecosystems. Painful for programmatic workflows.</li>
-          <li><span className="landing-why-dot" style={{ background: 'var(--brand)' }} />Mindmaply closes the gap: plain text in, presentation-quality diagrams out. No design decisions to make.</li>
-          <li><span className="landing-why-dot" style={{ background: 'var(--b3)' }} />Your source stays valid Markdown or Mermaid: readable, diffable, and portable forever.</li>
-        </ul>
+      <section className="landing-anywhere">
+        <h2>Your diagram, anywhere</h2>
+        <div className="landing-anywhere-grid">
+          <div className="landing-anywhere-item">
+            <h3>Export</h3>
+            <p>Crisp SVG, or PNG up to 3× resolution, on a transparent or white background.</p>
+          </div>
+          <div className="landing-anywhere-item">
+            <h3>Share</h3>
+            <p>The whole diagram is encoded in the link. No account, no server.</p>
+          </div>
+          <div className="landing-anywhere-item">
+            <h3>Embed</h3>
+            <p>Drop an interactive iframe into any page. The demo above is one.</p>
+          </div>
+        </div>
+        <div className="landing-anywhere-shots">
+          <figure>
+            <img
+              src="/landing/export-modal.png"
+              alt="Mindmaply export dialog with SVG, PNG up to 3x resolution, and source text options"
+              loading="lazy"
+            />
+            <figcaption>Export, straight from the editor</figcaption>
+          </figure>
+          <figure>
+            <img
+              src="/landing/share-modal.png"
+              alt="Mindmaply share dialog with a view-and-edit link and an interactive iframe embed snippet"
+              loading="lazy"
+            />
+            <figcaption>Share a link or copy the iframe</figcaption>
+          </figure>
+        </div>
       </section>
 
       <section className="landing-oss">
@@ -113,10 +179,13 @@ export default function Landing() {
           browser, in Node, in your CI, or inside an AI pipeline. The editor you see above is just
           one consumer of it.
         </p>
+        <a href="https://github.com/productscalexyz/mindmaply" className="landing-gh" target="_blank" rel="noreferrer">
+          Star us on GitHub →
+        </a>
       </section>
 
       <section className="landing-roadmap">
-        <h2>Diagram roadmap</h2>
+        <h2>More diagram types on the way</h2>
         <div className="landing-roadmap-canvas">
           {roadmapSvg
             ? <div className="landing-demo-svg" dangerouslySetInnerHTML={{ __html: roadmapSvg }} />
@@ -130,6 +199,7 @@ export default function Landing() {
         <div className="landing-nav-links">
           <Link to="/editor" className="docs-link">Editor</Link>
           <Link to="/docs" className="docs-link">Docs</Link>
+          <a href="https://github.com/productscalexyz/mindmaply" className="docs-link" target="_blank" rel="noreferrer">GitHub</a>
         </div>
       </footer>
     </div>
