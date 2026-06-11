@@ -22,6 +22,8 @@ import {
   CANVAS_BG,
   ROOT_BG,
   EDGE_STROKE_WIDTH,
+  WRAP_WIDTH,
+  NODE_BG,
 } from './design'
 
 export type Direction = 'LR' | 'TD'
@@ -30,6 +32,12 @@ export type EdgeStyle = 'curved' | 'straight'
 // source is written in — a markdown outline can be either, declared via the
 // `diagram:` frontmatter key; in mermaid the grammar itself declares it.
 export type DiagramType = 'flowchart' | 'mindmap'
+
+/** Per-depth font sizing: 'scaled' shrinks deeper levels, 'uniform' does not */
+export type Typography = 'scaled' | 'uniform'
+
+/** Non-root node rendering: 'card' draws a background card, 'plain' is bare text */
+export type NodeStyle = 'card' | 'plain'
 
 export interface ThemeInput {
   /** Branch color palette — cycles in order across top-level branches */
@@ -43,6 +51,12 @@ export interface ThemeInput {
   /** Root node background color */
   rootBg?: string
   edgeStrokeWidth?: number
+  /** Soft-wrap labels at this pixel width; 0 disables auto-wrapping */
+  wrapWidth?: number
+  typography?: Typography
+  nodeStyle?: NodeStyle
+  /** Non-root node card background color */
+  nodeBg?: string
 }
 
 export type Theme = Required<ThemeInput>
@@ -75,6 +89,10 @@ export const DEFAULT_THEME: Theme = {
   canvasBg: CANVAS_BG,
   rootBg: ROOT_BG,
   edgeStrokeWidth: EDGE_STROKE_WIDTH,
+  wrapWidth: WRAP_WIDTH,
+  typography: 'scaled',
+  nodeStyle: 'card',
+  nodeBg: NODE_BG,
 }
 
 export interface ConfigOverrides {
@@ -127,13 +145,26 @@ function sanitizeTheme(raw: Record<string, unknown>): ThemeInput | undefined {
   if (typeof size === 'number' && Number.isFinite(size) && size > 0) {
     theme.fontSize = size
   }
-  for (const key of ['textColor', 'canvasBg', 'rootBg'] as const) {
+  for (const key of ['textColor', 'canvasBg', 'rootBg', 'nodeBg'] as const) {
     const v = raw[key]
     if (typeof v === 'string' && HEX_COLOR_RE.test(v)) theme[key] = v
   }
   const sw = raw['edgeStrokeWidth']
   if (typeof sw === 'number' && Number.isFinite(sw) && sw > 0) {
     theme.edgeStrokeWidth = sw
+  }
+  // Unlike fontSize, 0 is meaningful here: it disables auto-wrapping
+  const ww = raw['wrapWidth']
+  if (typeof ww === 'number' && Number.isFinite(ww) && ww >= 0) {
+    theme.wrapWidth = ww
+  }
+  const ty = raw['typography']
+  if (ty === 'scaled' || ty === 'uniform') {
+    theme.typography = ty
+  }
+  const ns = raw['nodeStyle']
+  if (ns === 'card' || ns === 'plain') {
+    theme.nodeStyle = ns
   }
   return Object.keys(theme).length > 0 ? theme : undefined
 }
@@ -195,6 +226,10 @@ export function configToFrontmatter(config: DocumentConfig): string {
     if (t.canvasBg) lines.push(`theme.canvasBg: ${t.canvasBg}`)
     if (t.rootBg) lines.push(`theme.rootBg: ${t.rootBg}`)
     if (t.edgeStrokeWidth !== undefined) lines.push(`theme.edgeStrokeWidth: ${t.edgeStrokeWidth}`)
+    if (t.wrapWidth !== undefined) lines.push(`theme.wrapWidth: ${t.wrapWidth}`)
+    if (t.typography) lines.push(`theme.typography: ${t.typography}`)
+    if (t.nodeStyle) lines.push(`theme.nodeStyle: ${t.nodeStyle}`)
+    if (t.nodeBg) lines.push(`theme.nodeBg: ${t.nodeBg}`)
   }
   if (lines.length === 0) return ''
   return ['---', ...lines, '---'].join('\n')
@@ -276,7 +311,11 @@ export function parseFrontmatter(source: string): FrontmatterResult {
       config.edgeStyle = value
     } else if (key === 'theme.palette') {
       rawTheme['palette'] = value.split(',').map(c => c.trim())
-    } else if (key === 'theme.fontSize' || key === 'theme.edgeStrokeWidth') {
+    } else if (
+      key === 'theme.fontSize' ||
+      key === 'theme.edgeStrokeWidth' ||
+      key === 'theme.wrapWidth'
+    ) {
       rawTheme[key.slice('theme.'.length)] = Number(value)
     } else if (key.startsWith('theme.')) {
       rawTheme[key.slice('theme.'.length)] = value

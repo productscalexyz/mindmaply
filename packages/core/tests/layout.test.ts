@@ -3,7 +3,8 @@ import { computeOrthogonalLayout } from '../src/layout/orthogonal'
 import { buildTree } from '../src/tree'
 import { parse } from '../src/parser'
 import type { LayoutNode } from '../src/layout/types'
-import { NODE_HEIGHT, ORTHO_V_GAP } from '../src/design'
+import { NODE_HEIGHT, ORTHO_V_GAP, NODE_PADDING_H } from '../src/design'
+import { DEFAULT_THEME } from '../src/config'
 
 const DIAGRAM = `flowchart LR
   root["Site"]
@@ -172,5 +173,63 @@ describe('multi-line labels', () => {
     const layout = computeOrthogonalLayout(tree)
     const [a, b] = layout.children
     expect(a.width).toBeCloseTo(b.width, 1)
+  })
+})
+
+describe('auto-wrapped labels', () => {
+  const LONG = 'Clarify what was at risk, emotionally or otherwise, to make the story compelling'
+  const src = `flowchart LR
+  root["Root"]
+  root --> a["placeholder"]
+  root --> b["short"]`
+
+  function longLabelTree() {
+    const tree = buildTree(parse(src))
+    tree.children[0].label = LONG
+    return tree
+  }
+
+  it('a long label wraps: multiple lines, width capped, height grows', () => {
+    const layout = computeOrthogonalLayout(longLabelTree())
+    const a = layout.children[0]
+    expect(a.lines.length).toBeGreaterThan(1)
+    // width budget = wrapped text + card padding
+    expect(a.width).toBeLessThanOrEqual(DEFAULT_THEME.wrapWidth + NODE_PADDING_H * 2)
+    expect(a.height).toBeGreaterThan(NODE_HEIGHT)
+  })
+
+  it('theme.wrapWidth: 0 disables wrapping', () => {
+    const theme = { ...DEFAULT_THEME, wrapWidth: 0 }
+    const layout = computeOrthogonalLayout(longLabelTree(), 'LR', theme)
+    const a = layout.children[0]
+    expect(a.lines).toEqual([LONG])
+    expect(a.width).toBeGreaterThan(DEFAULT_THEME.wrapWidth)
+  })
+
+  it('the same label measures narrower at deeper levels (scaled typography)', () => {
+    const deepSrc = `flowchart LR
+  root["Root"]
+  root --> a["placeholder"]
+  a --> b["x"]
+  b --> c["placeholder"]`
+    const tree = buildTree(parse(deepSrc))
+    const theme = { ...DEFAULT_THEME, wrapWidth: 0 }
+    tree.children[0].label = LONG
+    tree.children[0].children[0].children[0].label = LONG
+    const layout = computeOrthogonalLayout(tree, 'LR', theme)
+    const depth1 = layout.children[0]
+    const depth3 = depth1.children[0].children[0]
+    expect(depth3.width).toBeLessThan(depth1.width)
+  })
+
+  it('wrapped TD siblings do not overlap horizontally', () => {
+    const tree = buildTree(parse(src))
+    tree.children[0].label = LONG
+    tree.children[1].label = LONG
+    const layout = computeOrthogonalLayout(tree, 'TD')
+    const sorted = [...layout.children].sort((a, b) => a.x - b.x)
+    const gap =
+      (sorted[1].x - sorted[1].width / 2) - (sorted[0].x + sorted[0].width / 2)
+    expect(gap).toBeGreaterThanOrEqual(0)
   })
 })

@@ -9,53 +9,43 @@ import {
   ROOT_MIN_WIDTH,
   ROOT_MIN_HEIGHT,
   ROOT_PADDING_H,
+  NODE_PADDING_H,
+  EXTRA_LINE_FACTOR,
 } from '../design'
+import { estimateLineWidth, wrapLabel, fontSizeForDepth } from './text'
 
-// Per-line-height for the 2nd+ lines of a multi-line label (from <br/>)
-const EXTRA_LINE_FACTOR = 1.25
-
-// Width factors by character class — a rough but stable SVG estimate that
-// beats a flat 0.6em for labels heavy in narrow (il.,') or wide (mwMW) glyphs.
-const NARROW_RE = /[iltfj.,;:'"!|()[\] ]/
-const WIDE_RE = /[mwMW@%&]/
-
-function charWidthFactor(ch: string): number {
-  if (NARROW_RE.test(ch)) return 0.35
-  if (WIDE_RE.test(ch)) return 0.9
-  return 0.6
+interface LayoutContext {
+  direction: 'LR' | 'TD'
+  theme: Theme
+  /** Memoized display lines per node — wrap decisions must be identical in
+   * the separation callback and node sizing. */
+  linesOf: (n: TreeNode) => string[]
 }
 
-// Estimate text width for a single line of a label
-function estimateLineWidth(line: string, fontSize: number): number {
-  let factor = 0
-  for (const ch of line) factor += charWidthFactor(ch)
-  return factor * fontSize
+function nodeWidth(lines: string[], depth: number, theme: Theme): number {
+  const fs = fontSizeForDepth(depth, theme)
+  const textWidth = Math.max(...lines.map(l => estimateLineWidth(l, fs)))
+  // Card mode draws a padded rect behind non-root text — edges and columns
+  // must clear the card, not just the glyphs (root pads via ROOT_PADDING_H).
+  const pad = depth > 0 && theme.nodeStyle === 'card' ? NODE_PADDING_H * 2 : 0
+  return textWidth + pad
 }
 
-function labelLines(label: string): string[] {
-  return label.split('\n')
-}
-
-function estimateTextWidth(label: string, fontSize: number): number {
-  return Math.max(...labelLines(label).map(l => estimateLineWidth(l, fontSize)))
-}
-
-function nodeHeight(treeNode: TreeNode, fontSize: number): number {
-  const lines = labelLines(treeNode.label).length
-  const base = treeNode.depth === 0 ? ROOT_MIN_HEIGHT : NODE_HEIGHT
-  return base + (lines - 1) * fontSize * EXTRA_LINE_FACTOR
+function nodeHeight(lines: string[], depth: number, theme: Theme): number {
+  const base = depth === 0 ? ROOT_MIN_HEIGHT : NODE_HEIGHT
+  return base + (lines.length - 1) * fontSizeForDepth(depth, theme) * EXTRA_LINE_FACTOR
 }
 
 function toLayoutNode(
   d3Node: HierarchyPointNode<TreeNode>,
   parent: LayoutNode | null,
-  direction: 'LR' | 'TD',
-  theme: Theme,
+  ctx: LayoutContext,
 ): LayoutNode {
   const treeNode = d3Node.data
   const isRoot = treeNode.depth === 0
 
-  const textWidth = estimateTextWidth(treeNode.label, theme.fontSize)
+  const lines = ctx.linesOf(treeNode)
+  const textWidth = nodeWidth(lines, treeNode.depth, ctx.theme)
   const width = isRoot
     ? Math.max(ROOT_MIN_WIDTH, textWidth + ROOT_PADDING_H * 2)
     : textWidth
@@ -65,20 +55,21 @@ function toLayoutNode(
   const layoutNode: LayoutNode = {
     id: treeNode.id,
     label: treeNode.label,
+    lines,
     shape: treeNode.shape,
     depth: treeNode.depth,
     branchColor: treeNode.branchColor,
     resolvedStyle: treeNode.resolvedStyle,
-    x: direction === 'LR' ? d3Node.y : d3Node.x,
-    y: direction === 'LR' ? d3Node.x : d3Node.y,
+    x: ctx.direction === 'LR' ? d3Node.y : d3Node.x,
+    y: ctx.direction === 'LR' ? d3Node.x : d3Node.y,
     width,
-    height: nodeHeight(treeNode, theme.fontSize),
+    height: nodeHeight(lines, treeNode.depth, ctx.theme),
     children: [],
     parent,
   }
 
   layoutNode.children = (d3Node.children ?? []).map(c =>
-    toLayoutNode(c, layoutNode, direction, theme),
+    toLayoutNode(c, layoutNode, ctx),
   )
 
   return layoutNode
@@ -136,14 +127,25 @@ export function computeOrthogonalLayout(
 ): LayoutNode {
   const hier = hierarchy<TreeNode>(root, d => d.children)
 
+  // Wrap each label exactly once — the separation callback and node sizing
+  // must agree on line breaks or boxes and spacing drift apart.
+  const linesCache = new Map<TreeNode, string[]>()
+  const linesOf = (n: TreeNode): string[] => {
+    let lines = linesCache.get(n)
+    if (!lines) {
+      lines = wrapLabel(n.label, theme.wrapWidth, fontSizeForDepth(n.depth, theme))
+      linesCache.set(n, lines)
+    }
+    return lines
+  }
+
   // Cross-axis spacing must grow with multi-line labels (LR cross axis is
   // vertical = node height). The base matches d3's default separation
   // (1 between siblings, 2 otherwise) so single-line diagrams are unchanged.
   const crossStep = direction === 'LR'
     ? NODE_HEIGHT + ORTHO_V_GAP
     : ROOT_MIN_WIDTH + ORTHO_H_GAP
-  const extraLines = (n: { data: TreeNode }) =>
-    labelLines(n.data.label).length - 1
+  const extraLines = (n: { data: TreeNode }) => linesOf(n.data).length - 1
 
   // tree() (Reingold-Tilford) places each node at its actual depth
   // nodeSize: [cross-axis spacing, depth-axis step]
@@ -152,10 +154,17 @@ export function computeOrthogonalLayout(
     : tree<TreeNode>().nodeSize([ROOT_MIN_WIDTH + ORTHO_H_GAP, NODE_HEIGHT + ORTHO_V_GAP])
   ).separation((a, b) => {
     const base = a.parent === b.parent ? 1 : 2
-    if (direction === 'TD') return base
+    if (direction === 'TD') {
+      // TD cross axis is horizontal = node width; the fixed crossStep can't
+      // absorb wide labels, so widen separation until boxes clear ORTHO_V_GAP.
+      const widthOf = (n: { data: TreeNode }) =>
+        nodeWidth(linesOf(n.data), n.data.depth, theme)
+      const needed = (widthOf(a) + widthOf(b)) / 2 + ORTHO_V_GAP
+      return Math.max(base, needed / crossStep)
+    }
     const extra =
       ((extraLines(a) + extraLines(b)) / 2) *
-      ((theme.fontSize * EXTRA_LINE_FACTOR) / crossStep)
+      ((fontSizeForDepth(a.depth, theme) * EXTRA_LINE_FACTOR) / crossStep)
     return base + extra
   })
 
@@ -174,7 +183,7 @@ export function computeOrthogonalLayout(
   }
   offset(rootNode)
 
-  const layout = toLayoutNode(rootNode, null, direction, theme)
+  const layout = toLayoutNode(rootNode, null, { direction, theme, linesOf })
   if (direction === 'LR') applyColumnWidths(layout)
   else applyRowHeights(layout)
   return layout

@@ -1,6 +1,11 @@
 export interface LayoutNode {
   id: string
   label: string
+  /**
+   * Display lines: hard breaks (<br/>) plus soft wraps from theme.wrapWidth.
+   * Render-only — soft wraps are never written back to the source.
+   */
+  lines: string[]
   shape: 'rect' | 'circle' | 'pill'
   depth: number
   branchColor: string

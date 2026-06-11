@@ -223,9 +223,20 @@ export default function Docs() {
             <div className="docs-note">
               Theme keys: <code>palette</code> (branch colors, cycled across top-level
               branches), <code>fontFamily</code>, <code>fontSize</code>, <code>textColor</code>,{' '}
-              <code>canvasBg</code>, <code>rootBg</code>, <code>edgeStrokeWidth</code>. Omitted
+              <code>canvasBg</code>, <code>rootBg</code>, <code>edgeStrokeWidth</code>,{' '}
+              <code>wrapWidth</code>, <code>typography</code>, <code>nodeStyle</code>,{' '}
+              <code>nodeBg</code>. Omitted
               keys keep the default look. Invalid values are ignored — config never breaks a
               diagram.
+            </div>
+            <div className="docs-note">
+              Long labels auto-wrap at 260px (<code>theme.wrapWidth</code> in px,{' '}
+              <code>0</code> disables) — explicit <code>&lt;br/&gt;</code> breaks still apply.
+              Deeper levels render progressively smaller for hierarchy
+              (<code>theme.typography: uniform</code> keeps one size everywhere).
+              Non-root nodes draw the same card surface as the root with a{' '}
+              <code>theme.nodeBg</code> fill; <code>theme.nodeStyle: plain</code> renders
+              bare text.
             </div>
             <div className="docs-note">
               There is no link between language and diagram type. In mermaid the grammar

@@ -93,6 +93,25 @@ describe('documentConfigFromInit()', () => {
     })
     expect(config).toEqual({})
   })
+
+  it('wrapWidth accepts 0 (off switch) but drops negatives', () => {
+    expect(documentConfigFromInit({ theme: { wrapWidth: 0 } }).theme?.wrapWidth).toBe(0)
+    expect(documentConfigFromInit({ theme: { wrapWidth: 200 } }).theme?.wrapWidth).toBe(200)
+    expect(documentConfigFromInit({ theme: { wrapWidth: -5 } })).toEqual({})
+  })
+
+  it('typography accepts the scaled/uniform enum only', () => {
+    expect(documentConfigFromInit({ theme: { typography: 'uniform' } }).theme?.typography).toBe('uniform')
+    expect(documentConfigFromInit({ theme: { typography: 'scaled' } }).theme?.typography).toBe('scaled')
+    expect(documentConfigFromInit({ theme: { typography: 'fancy' } })).toEqual({})
+  })
+
+  it('nodeStyle accepts the card/plain enum, nodeBg requires a hex color', () => {
+    expect(documentConfigFromInit({ theme: { nodeStyle: 'plain' } }).theme?.nodeStyle).toBe('plain')
+    expect(documentConfigFromInit({ theme: { nodeStyle: 'boxy' } })).toEqual({})
+    expect(documentConfigFromInit({ theme: { nodeBg: '#1B1E22' } }).theme?.nodeBg).toBe('#1B1E22')
+    expect(documentConfigFromInit({ theme: { nodeBg: 'white' } })).toEqual({})
+  })
 })
 
 describe('mermaid init directive integration', () => {
@@ -182,6 +201,23 @@ describe('config round-trips through format conversion', () => {
   it('empty config serializes to empty strings', () => {
     expect(configToFrontmatter({})).toBe('')
     expect(configToInitDirective({})).toBe('')
+  })
+
+  it('wrapWidth (including 0), typography, and node card keys survive both round-trips', () => {
+    const config = {
+      theme: {
+        wrapWidth: 0,
+        typography: 'uniform' as const,
+        nodeStyle: 'plain' as const,
+        nodeBg: '#1B1E22',
+      },
+    }
+    const block = configToFrontmatter(config)
+    expect(block).toContain('theme.wrapWidth: 0')
+    expect(parseFrontmatter(`${block}\n# Root`).config).toEqual(config)
+    const directive = configToInitDirective(config)
+    const ast = parse(`${directive}\nflowchart LR\n  a --> b`)
+    expect(ast.config).toEqual(config)
   })
 
   it('mermaid → markdown keeps the theme as frontmatter (and stamps the diagram type)', () => {
