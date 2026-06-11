@@ -46,7 +46,8 @@ export default function ShareModal({ url, embedCode, imgCode, onClose }: Props) 
       <div className="modal">
         <div className="modal-hd">Share diagram</div>
         <div className="modal-sub">
-          The whole diagram is encoded in these links. No account or server needed.
+          The whole diagram is encoded in these links. No account needed.
+          {imgCode && ' Pasted links unfurl with a live preview of the diagram.'}
         </div>
 
         <CopyRow label="Link (view &amp; edit)" value={url} />

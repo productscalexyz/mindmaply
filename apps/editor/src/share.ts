@@ -35,10 +35,18 @@ export function readSharedFromUrl(): SharePayload | null {
   return d ? decodeShare(d) : null
 }
 
-// Base URL for the render API. Empty until the Cloudflare Worker is live; when
-// set (e.g. "https://api.mindmaply.app"), the Share modal also offers a static
-// <img> embed snippet.
-export const API_BASE = ''
+// Base URL of the render API (apps/api, the Cloudflare Worker). Comes from the
+// build (e.g. VITE_API_BASE=https://api.mindmaply.app); while unset the Share
+// modal hands out plain #/editor links and skips the <img> embed snippet.
+export const API_BASE: string = (import.meta.env.VITE_API_BASE ?? '').replace(/\/+$/, '')
+
+// Share link that unfurls with a live preview of the diagram: /s/<d> serves
+// per-diagram OG tags to crawlers (which never see the URL fragment) and
+// redirects humans into the editor. Null while the API is not configured.
+export function buildShareApiUrl(p: SharePayload): string | null {
+  if (!API_BASE) return null
+  return `${API_BASE}/s/${encodeShare(p)}`
+}
 
 export function buildImgEmbedCode(p: SharePayload): string | null {
   if (!API_BASE) return null

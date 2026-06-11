@@ -24,7 +24,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # VITE_API_BASE (repo variable, e.g. https://api.mindmaply.app) switches
+      # the Share modal to /s links that unfurl with a diagram preview. Unset →
+      # plain #/editor links, exactly as before.
       - run: pnpm build
+        env:
+          VITE_API_BASE: ${{ vars.VITE_API_BASE }}
 
       - uses: peaceiris/actions-gh-pages@v4
         with:
