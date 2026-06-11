@@ -26,10 +26,13 @@ jobs:
 
       # VITE_API_BASE (repo variable, e.g. https://api.mindmaply.app) switches
       # the Share modal to /s links that unfurl with a diagram preview. Unset →
-      # plain #/editor links, exactly as before.
+      # plain #/editor links, exactly as before. VITE_SHARE_BASE (e.g.
+      # https://mindmaply.app) makes those links use the zone route on the main
+      # domain instead of the api host.
       - run: pnpm build
         env:
           VITE_API_BASE: ${{ vars.VITE_API_BASE }}
+          VITE_SHARE_BASE: ${{ vars.VITE_SHARE_BASE }}
 
       - uses: peaceiris/actions-gh-pages@v4
         with:

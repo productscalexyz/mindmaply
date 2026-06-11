@@ -41,12 +41,23 @@ export function readSharedFromUrl(): SharePayload | null {
 // modal hands out plain #/editor links and skips the <img> embed snippet.
 export const API_BASE: string = (import.meta.env.VITE_API_BASE ?? '').replace(/\/+$/, '')
 
+// Base for share landing links (`<base>s/<d>`). VITE_SHARE_BASE points at the
+// zone route on the main domain (e.g. https://mindmaply.app — prettier links,
+// same Worker); when unset, fall back to the api host, which serves the
+// identical page at /s/. Empty only while the API itself is unconfigured.
+const RAW_SHARE_BASE: string = import.meta.env.VITE_SHARE_BASE ?? ''
+export const SHARE_BASE: string = RAW_SHARE_BASE
+  ? RAW_SHARE_BASE.replace(/\/*$/, '/')
+  : API_BASE
+    ? `${API_BASE}/`
+    : ''
+
 // Share link that unfurls with a live preview of the diagram: /s/<d> serves
 // per-diagram OG tags to crawlers (which never see the URL fragment) and
 // redirects humans into the editor. Null while the API is not configured.
 export function buildShareApiUrl(p: SharePayload): string | null {
-  if (!API_BASE) return null
-  return buildShareLandingUrl(p, `${API_BASE}/`)
+  if (!SHARE_BASE) return null
+  return buildShareLandingUrl(p, SHARE_BASE)
 }
 
 export function buildImgEmbedCode(p: SharePayload): string | null {
