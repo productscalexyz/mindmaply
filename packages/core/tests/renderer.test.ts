@@ -3,6 +3,7 @@ import { renderSVG } from '../src/renderer/index'
 import { computeOrthogonalLayout } from '../src/layout/orthogonal'
 import { buildTree } from '../src/tree'
 import { parse } from '../src/parser'
+import { toMarkdown, toMermaid } from '../src/serializers'
 import { DEFAULT_THEME } from '../src/config'
 
 const SIMPLE = `flowchart LR
@@ -170,5 +171,88 @@ describe('renderSVG() — multi-line labels', () => {
   it('single-line labels render without tspans', () => {
     const svg = renderSVG(getLayout(SIMPLE))
     expect(svg).not.toContain('<tspan')
+  })
+})
+
+describe('renderSVG() — auto-wrap and depth typography', () => {
+  const LONG = 'Clarify what was at risk, emotionally or otherwise, to make the story compelling'
+  const LONG_SRC = `mindmap
+  root((Root))
+    ${LONG}`
+
+  it('a long source label renders as multiple tspans without touching the source', () => {
+    const ast = parse(LONG_SRC)
+    const svg = renderSVG(computeOrthogonalLayout(buildTree(ast)))
+    expect(svg).toContain('<tspan')
+    // soft wraps never leak into serialized source
+    expect(toMermaid(ast)).toContain(LONG)
+    expect(toMermaid(ast)).not.toContain('<br/>')
+    expect(toMarkdown(ast)).toContain(LONG)
+  })
+
+  it('scaled typography: depth-1 emits 16px, depth-2 emits 14px', () => {
+    const svg = renderSVG(getLayout(SIMPLE))
+    // Section A/B are depth 1, Sub 1 is depth 2
+    expect(svg).toContain('font-size="16"')
+    expect(svg).toContain('font-size="14"')
+  })
+
+  it('uniform typography emits a single font size everywhere', () => {
+    const theme = { ...DEFAULT_THEME, typography: 'uniform' as const }
+    const layout = computeOrthogonalLayout(buildTree(parse(SIMPLE)), 'LR', theme)
+    const svg = renderSVG(layout, { theme })
+    const sizes = new Set([...svg.matchAll(/font-size="([^"]+)"/g)].map(m => m[1]))
+    expect(sizes).toEqual(new Set(['16']))
+  })
+})
+
+describe('renderSVG() — node cards', () => {
+  // SIMPLE has 3 child nodes; rects = 1 background + 1 root + 1 card per child
+  it('card mode (default) draws one card rect per child node', () => {
+    const svg = renderSVG(getLayout(SIMPLE))
+    const rects = (svg.match(/<rect/g) ?? []).length
+    expect(rects).toBe(2 + 3)
+  })
+
+  it('cards use nodeBg fill with the root card surface (shadow, no border)', () => {
+    const theme = { ...DEFAULT_THEME, nodeBg: '#FAFBFC' }
+    const layout = computeOrthogonalLayout(buildTree(parse(SIMPLE)), 'LR', theme)
+    const svg = renderSVG(layout, { theme })
+    const cards = [...svg.matchAll(/<rect[^/]*fill="#FAFBFC"[^/]*\/>/g)].map(m => m[0])
+    expect(cards).toHaveLength(3)
+    for (const card of cards) {
+      expect(card).toContain('filter="url(#mm-shadow)"')
+      expect(card).not.toContain('stroke')
+    }
+  })
+
+  it('all cards share the root border radius, regardless of line count or shape', () => {
+    const tree = buildTree(parse(`mindmap
+  root((Root))
+    (Pill heading)
+      A long leaf description that will certainly wrap across multiple lines at the default width`))
+    const svg = renderSVG(computeOrthogonalLayout(tree))
+    const radii = new Set(
+      [...svg.matchAll(/<rect[^/]*rx="([^"]+)"[^/]*\/>/g)].map(m => m[1]),
+    )
+    expect(radii.size).toBe(1)
+  })
+
+  it('nodeStyle: plain renders bare text (background + root rects only)', () => {
+    const theme = { ...DEFAULT_THEME, nodeStyle: 'plain' as const }
+    const layout = computeOrthogonalLayout(buildTree(parse(SIMPLE)), 'LR', theme)
+    const svg = renderSVG(layout, { theme })
+    const rects = (svg.match(/<rect/g) ?? []).length
+    expect(rects).toBe(2)
+  })
+
+  it('card mode widens nodes so edges attach at the card border', () => {
+    const cardLayout = computeOrthogonalLayout(buildTree(parse(SIMPLE)))
+    const plainLayout = computeOrthogonalLayout(
+      buildTree(parse(SIMPLE)),
+      'LR',
+      { ...DEFAULT_THEME, nodeStyle: 'plain' },
+    )
+    expect(cardLayout.children[0].width).toBeGreaterThan(plainLayout.children[0].width)
   })
 })

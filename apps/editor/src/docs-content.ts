@@ -103,6 +103,7 @@ edgeStyle: straight
 theme.palette: #E45858, #2F9E8F, #7A5CD0
 theme.fontFamily: Georgia, serif
 theme.fontSize: 14
+theme.wrapWidth: 260
 ---
 # Idea
 - Branch one
