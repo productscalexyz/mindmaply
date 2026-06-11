@@ -15,7 +15,7 @@ import EditorPanel from '../components/EditorPanel'
 import Canvas from '../components/Canvas'
 import ShareModal from '../components/ShareModal'
 import ExportModal from '../components/ExportModal'
-import { readSharedFromUrl, buildShareUrl, buildEmbedUrl, buildImgEmbedCode } from '../share'
+import { readSharedFromUrl, buildShareUrl, buildShareApiUrl, buildEmbedUrl, buildImgEmbedCode } from '../share'
 
 type Format = 'mermaid' | 'markdown'
 
@@ -48,10 +48,12 @@ export default function Editor() {
   const dragging = useRef(false)
 
   // Live shareable link + embed snippets encoding the current editor state.
-  const shareUrl = useMemo(
-    () => buildShareUrl({ v: 1, source, format, direction, edgeStyle, sample }),
-    [source, format, direction, edgeStyle, sample]
-  )
+  // Prefer the API's /s link when configured: it unfurls with a preview image
+  // of the diagram when pasted (Slack, X, …), then redirects into the editor.
+  const shareUrl = useMemo(() => {
+    const payload = { v: 1, source, format, direction, edgeStyle, sample } as const
+    return buildShareApiUrl(payload) ?? buildShareUrl(payload)
+  }, [source, format, direction, edgeStyle, sample])
   const embedCode = useMemo(() => {
     const url = buildEmbedUrl({ v: 1, source, format, direction, edgeStyle, sample })
     return `<iframe src="${url}" width="800" height="500" style="border:0;border-radius:12px" loading="lazy"></iframe>`
