@@ -44,7 +44,7 @@ pnpm dev      # editor app at http://localhost:5173
 
 ## Releases
 
-Releases of `mindmaply-core` are automated with [Changesets](https://github.com/changesets/changesets) — see [docs/RELEASING.md](./docs/RELEASING.md). As a contributor you only ever need `pnpm changeset`.
+Releases of `mindmaply-core` are automated with [Changesets](https://github.com/changesets/changesets) — see [RELEASING.md](./RELEASING.md). As a contributor you only ever need `pnpm changeset`.
 
 ## Reporting bugs
 

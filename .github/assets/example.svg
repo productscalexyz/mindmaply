@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-130.39999999999998 -176.5 1055.6 353" width="1055.6" height="353">
+<defs>
+  <filter id="mm-shadow" x="-20%" y="-20%" width="140%" height="140%">
+    <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="rgba(0,0,0,0.1)"/>
+  </filter>
+</defs>
+<rect x="-130.39999999999998" y="-176.5" width="1055.6" height="353" fill="#F4F5F7"/>
+<path d="M 70.39999999999998 0 C 140.39999999999998 0, 140.39999999999998 -80.25, 170.39999999999998 -80.25" stroke="#4B96E6" stroke-width="3.5" fill="none"/>
+<path d="M 283.99999999999994 -80.25 C 353.99999999999994 -80.25, 353.99999999999994 -80.25, 383.99999999999994 -80.25" stroke="#4B96E6" stroke-width="3.5" fill="none"/>
+<path d="M 475.2 -80.25 C 553.0399999999998 -80.25, 553.0399999999998 -80.25, 586.3999999999999 -80.25" stroke="#4B96E6" stroke-width="3.5" fill="none"/>
+<path d="M 70.39999999999998 0 C 140.39999999999998 0, 140.39999999999998 80.25, 170.39999999999998 80.25" stroke="#B355D0" stroke-width="3.5" fill="none"/>
+<path d="M 248 80.25 C 343.19999999999993 80.25, 343.19999999999993 80.25, 383.99999999999994 80.25" stroke="#B355D0" stroke-width="3.5" fill="none"/>
+<path d="M 486.3999999999999 80.25 C 556.3999999999999 80.25, 556.3999999999999 80.25, 586.3999999999999 80.25" stroke="#B355D0" stroke-width="3.5" fill="none"/>
+<rect x="-70.39999999999998" y="-20" width="140.79999999999995" height="40" rx="6" fill="#FFFFFF" filter="url(#mm-shadow)"/><text x="0" y="0" text-anchor="middle" dominant-baseline="middle" font-family="Inter, SF Pro Text, system-ui, sans-serif" font-size="16" font-weight="600" fill="#1E293B">Trip Planning</text>
+<rect x="170.39999999999998" y="-93.25" width="113.59999999999998" height="26" rx="6" fill="#EEF1F4" filter="url(#mm-shadow)"/><text x="227.19999999999996" y="-80.25" text-anchor="middle" dominant-baseline="middle" font-family="Inter, SF Pro Text, system-ui, sans-serif" font-size="16" font-weight="600" fill="#4B96E6">Destination</text>
+<rect x="383.99999999999994" y="-92.25" width="91.2" height="24" rx="6" fill="#EEF1F4" filter="url(#mm-shadow)"/><text x="429.59999999999997" y="-80.25" text-anchor="middle" dominant-baseline="middle" font-family="Inter, SF Pro Text, system-ui, sans-serif" font-size="14" font-weight="400" fill="#4B96E6">Research</text>
+<rect x="586.3999999999999" y="-108" width="274.25000000000006" height="55.5" rx="6" fill="#EEF1F4" filter="url(#mm-shadow)"/><text x="723.5249999999999" y="-80.25" text-anchor="middle" dominant-baseline="middle" font-family="Inter, SF Pro Text, system-ui, sans-serif" font-size="13" font-weight="400" fill="#4B96E6"><tspan x="723.5249999999999" dy="-16.25">Compare flight prices across at least</tspan><tspan x="723.5249999999999" dy="16.25">three airlines before committing to a</tspan><tspan x="723.5249999999999" dy="16.25">departure date.</tspan></text>
+<rect x="170.39999999999998" y="67.25" width="77.6" height="26" rx="6" fill="#EEF1F4" filter="url(#mm-shadow)"/><text x="209.2" y="80.25" text-anchor="middle" dominant-baseline="middle" font-family="Inter, SF Pro Text, system-ui, sans-serif" font-size="16" font-weight="600" fill="#B355D0">Budget</text>
+<rect x="383.99999999999994" y="68.25" width="102.39999999999998" height="24" rx="6" fill="#EEF1F4" filter="url(#mm-shadow)"/><text x="435.19999999999993" y="80.25" text-anchor="middle" dominant-baseline="middle" font-family="Inter, SF Pro Text, system-ui, sans-serif" font-size="14" font-weight="400" fill="#B355D0">Daily costs</text>
+<rect x="586.3999999999999" y="52.5" width="278.8" height="55.5" rx="6" fill="#EEF1F4" filter="url(#mm-shadow)"/><text x="725.7999999999998" y="80.25" text-anchor="middle" dominant-baseline="middle" font-family="Inter, SF Pro Text, system-ui, sans-serif" font-size="13" font-weight="400" fill="#B355D0"><tspan x="725.7999999999998" dy="-16.25">Track accommodation, food, and local</tspan><tspan x="725.7999999999998" dy="16.25">transport separately so overruns are</tspan><tspan x="725.7999999999998" dy="16.25">easy to spot.</tspan></text>
+</svg>
