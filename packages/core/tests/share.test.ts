@@ -4,6 +4,7 @@ import {
   decodeShare,
   buildShareUrl,
   buildEmbedUrl,
+  buildShareLandingUrl,
   type SharePayload,
 } from '../src/share'
 
@@ -66,5 +67,10 @@ describe('share encoding', () => {
     const base = 'https://mindmaply.app/'
     expect(buildShareUrl(SAMPLE, base)).toBe(`${base}#/editor?d=${encodeShare(SAMPLE)}`)
     expect(buildEmbedUrl(SAMPLE, base)).toBe(`${base}#/embed?d=${encodeShare(SAMPLE)}`)
+  })
+
+  it('builds a share landing URL on the /s/ route (no hash)', () => {
+    const base = 'https://mindmaply.app/'
+    expect(buildShareLandingUrl(SAMPLE, base)).toBe(`${base}s/${encodeShare(SAMPLE)}`)
   })
 })

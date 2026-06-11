@@ -61,3 +61,12 @@ export function buildShareUrl(p: SharePayload, base: string): string {
 export function buildEmbedUrl(p: SharePayload, base: string): string {
   return `${base}#/embed?d=${encodeShare(p)}`
 }
+
+// Build a link to the share landing route (`/s/<d>`, served by the render API
+// Worker). Unlike the hash links above, this URL unfurls on social platforms:
+// crawlers never send the fragment and don't run JS, so only a server-rendered
+// page can carry per-diagram OG tags. Humans who open it are redirected
+// straight into the editor.
+export function buildShareLandingUrl(p: SharePayload, base: string): string {
+  return `${base}s/${encodeShare(p)}`
+}

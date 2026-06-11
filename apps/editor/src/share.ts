@@ -3,6 +3,7 @@ import {
   decodeShare,
   buildShareUrl as coreBuildShareUrl,
   buildEmbedUrl as coreBuildEmbedUrl,
+  buildShareLandingUrl,
   type SharePayload,
 } from 'mindmaply-core'
 
@@ -45,7 +46,7 @@ export const API_BASE: string = (import.meta.env.VITE_API_BASE ?? '').replace(/\
 // redirects humans into the editor. Null while the API is not configured.
 export function buildShareApiUrl(p: SharePayload): string | null {
   if (!API_BASE) return null
-  return `${API_BASE}/s/${encodeShare(p)}`
+  return buildShareLandingUrl(p, `${API_BASE}/`)
 }
 
 export function buildImgEmbedCode(p: SharePayload): string | null {

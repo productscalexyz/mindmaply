@@ -116,6 +116,7 @@ export {
   decodeShare,
   buildShareUrl,
   buildEmbedUrl,
+  buildShareLandingUrl,
   type SharePayload,
 } from './share'
 
