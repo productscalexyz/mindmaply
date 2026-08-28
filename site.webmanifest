@@ -1,7 +1,7 @@
 {
   "name": "Mindmaply",
   "short_name": "Mindmaply",
-  "description": "Turn Markdown and Mermaid into beautiful, editable diagrams and mind maps.",
+  "description": "Turn Markdown and Mermaid into beautiful, editable mind maps.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F4F5F7",
