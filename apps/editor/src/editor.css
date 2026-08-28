@@ -295,9 +295,17 @@ body {
   display:flex; flex-wrap:wrap; gap:6px;
 }
 .canvas-chips.vertical {
-  right:auto; left:34px; bottom:70px; max-width:220px;
+  right:auto; left:34px; bottom:70px; max-width:250px;
   flex-direction:column; flex-wrap:nowrap; align-items:flex-start;
   overflow-y:auto; scrollbar-width:none;
+}
+/* the rail has room: show branch titles in full, wrapping over lines */
+.canvas-chips.vertical .chip {
+  max-width:250px; border-radius:14px; align-items:flex-start; text-align:left;
+}
+.canvas-chips.vertical .chip-dot { margin-top:4px; }
+.canvas-chips.vertical .chip-lbl {
+  white-space:normal; overflow:visible; text-overflow:clip; line-height:1.35;
 }
 .chip {
   display:inline-flex; align-items:center; gap:7px;
