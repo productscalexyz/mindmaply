@@ -36,7 +36,17 @@ const ROADMAP_SOURCE = `flowchart LR
 function Brand() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-      <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--brand)', display: 'inline-block' }} />
+      <svg width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <circle cx="9" cy="16" r="4.4" stroke="var(--brand)" strokeWidth="2.2" />
+        <g stroke="var(--brand)" strokeWidth="1.9" strokeLinecap="round">
+          <path d="M13.4 16 C18.5 16 17.5 7.5 22.8 7.5" />
+          <path d="M13.4 16 C17.5 16 18.5 16 23.2 16" />
+          <path d="M13.4 16 C18.5 16 17.5 24.5 22.8 24.5" />
+        </g>
+        <circle cx="25.3" cy="7.5" r="2.1" fill="var(--brand)" />
+        <circle cx="25.6" cy="16" r="2.1" fill="var(--brand)" />
+        <circle cx="25.3" cy="24.5" r="2.1" fill="var(--brand)" />
+      </svg>
       <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: '-.4px' }}>mindmaply</span>
     </div>
   )
