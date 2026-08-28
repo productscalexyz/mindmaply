@@ -219,6 +219,7 @@ export default function Landing() {
           <Link to="/docs" className="docs-link">Docs</Link>
           <a href="https://github.com/productscalexyz/mindmaply" className="docs-link" target="_blank" rel="noreferrer">GitHub</a>
           <a href="https://github.com/productscalexyz/mindmaply/blob/main/LICENSE" className="docs-link" target="_blank" rel="noreferrer">MIT License</a>
+          <a href="/privacy/" className="docs-link">Privacy</a>
         </div>
       </footer>
     </div>
