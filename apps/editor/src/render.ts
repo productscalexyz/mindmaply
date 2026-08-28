@@ -40,9 +40,14 @@ export function renderFromPayload(p: SharePayload): string {
 }
 
 // The laid-out node tree for the same payload, with the same options — node
-// positions line up exactly with the SVG renderFromPayload produces. Used by
-// the branch chapter chips to pan/zoom to level-1 branches.
-export function layoutFromPayload(p: SharePayload): LayoutNode {
+// positions line up exactly with the SVG renderFromPayload produces, and the
+// resolved direction (the flowchart header may override the payload's). Used
+// by the branch chapter chips to pan/zoom to level-1 branches.
+export function layoutFromPayload(p: SharePayload): {
+  root: LayoutNode
+  direction: 'LR' | 'TD'
+} {
   const ast = p.format === 'markdown' ? parseMarkdown(p.source) : parse(p.source)
-  return layoutAST(ast, payloadOptions(p)).root
+  const { config, root } = layoutAST(ast, payloadOptions(p))
+  return { root, direction: config.direction }
 }

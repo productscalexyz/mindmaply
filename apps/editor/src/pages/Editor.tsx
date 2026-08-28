@@ -90,16 +90,23 @@ export default function Editor() {
   // layout the renderer uses, so a chip click can center its branch exactly.
   const chips = useMemo(() => {
     try {
-      const root = layoutFromPayload({ v: 1, source, format, direction, edgeStyle, sample })
-      return root.children.map((c) => ({
-        id: c.id,
-        label: c.label,
-        color: c.branchColor,
-        x: c.x,
-        y: c.y,
-      }))
+      const { root, direction: dir } = layoutFromPayload({
+        v: 1, source, format, direction, edgeStyle, sample,
+      })
+      return {
+        // LR maps grow rightward from a left root, so a vertical rail on the
+        // left mirrors the map; TD maps keep the horizontal top row.
+        vertical: dir === 'LR',
+        items: root.children.map((c) => ({
+          id: c.id,
+          label: c.label,
+          color: c.branchColor,
+          x: c.x,
+          y: c.y,
+        })),
+      }
     } catch {
-      return []
+      return { vertical: false, items: [] }
     }
   }, [source, format, direction, edgeStyle, sample])
 
@@ -237,7 +244,8 @@ export default function Editor() {
             info={canvasInfo}
             onShare={() => setShareOpen(true)}
             onExport={() => setExportOpen(true)}
-            chips={chips}
+            chips={chips.items}
+            chipsVertical={chips.vertical}
           />
         </div>
       </div>

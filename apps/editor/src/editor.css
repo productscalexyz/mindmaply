@@ -294,6 +294,11 @@ body {
   position:absolute; top:12px; left:14px; right:210px; z-index:10;
   display:flex; flex-wrap:wrap; gap:6px;
 }
+.canvas-chips.vertical {
+  right:auto; left:34px; bottom:70px; max-width:220px;
+  flex-direction:column; flex-wrap:nowrap; align-items:flex-start;
+  overflow-y:auto; scrollbar-width:none;
+}
 .chip {
   display:inline-flex; align-items:center; gap:7px;
   max-width:200px; padding:5px 12px; border-radius:999px;

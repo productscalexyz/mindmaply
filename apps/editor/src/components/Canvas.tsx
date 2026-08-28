@@ -25,6 +25,8 @@ interface Props {
   shareUrl?: string
   /** Level-1 branch chips: click pans/zooms the canvas to that branch. */
   chips?: BranchChip[]
+  /** Stack the chips vertically on the left (used for LR maps). */
+  chipsVertical?: boolean
 }
 
 function parseViewBox(svgStr: string): [number, number, number, number] | null {
@@ -57,6 +59,7 @@ export default function Canvas({
   embed = false,
   shareUrl,
   chips,
+  chipsVertical = false,
 }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null)
 
@@ -173,7 +176,7 @@ export default function Canvas({
       {/* top-left: branch chapter chips (editor only). One per level-1
           branch; clicking pans/zooms to it — the way into a big map. */}
       {!embed && chips && chips.length > 1 && (
-        <div className="canvas-chips">
+        <div className={`canvas-chips${chipsVertical ? ' vertical' : ''}`}>
           {chips.map((chip) => (
             <button
               key={chip.id}
