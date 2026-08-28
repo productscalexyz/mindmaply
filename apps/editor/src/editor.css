@@ -194,7 +194,7 @@ body {
 }
 .canvas.is-panning { cursor:grabbing; }
 /* keep the real cursor on the floating controls */
-.canvas .zoom-cluster, .canvas .canvas-actions, .canvas .canvas-info { cursor:default; }
+.canvas .zoom-cluster, .canvas .canvas-actions, .canvas .canvas-info, .canvas .canvas-chips { cursor:default; }
 .canvas::before {
   content:''; position:absolute; inset:0; pointer-events:none;
   background-image:radial-gradient(circle, rgba(0,0,0,.048) 1px, transparent 1px);
@@ -288,6 +288,25 @@ body {
   background:transparent; cursor:pointer; transition:background .12s;
 }
 .zc-fit:hover { background:rgba(0,0,0,.06); color:var(--tx); }
+/* branch chapter chips: one pill per level-1 branch, top-left. Clicking
+   pans/zooms the canvas to that branch — the way into a big map. */
+.canvas-chips {
+  position:absolute; top:12px; left:14px; right:210px; z-index:10;
+  display:flex; flex-wrap:wrap; gap:6px;
+}
+.chip {
+  display:inline-flex; align-items:center; gap:7px;
+  max-width:200px; padding:5px 12px; border-radius:999px;
+  background:rgba(255,255,255,.85); border:1px solid rgba(0,0,0,.08);
+  backdrop-filter:blur(8px); box-shadow:0 1px 4px rgba(0,0,0,.07);
+  font-family:inherit; font-size:12.5px; font-weight:500; color:var(--tx);
+  cursor:pointer; transition:border-color .12s, box-shadow .12s;
+}
+.chip:hover { border-color:rgba(0,0,0,.2); }
+.chip.on { border-color:var(--brand); box-shadow:0 2px 8px rgba(236,91,1,.25); }
+.chip-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.chip-lbl { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
 .canvas-info {
   position:absolute; bottom:14px; left:14px; z-index:10;
   display:flex; align-items:center; gap:6px;
@@ -380,6 +399,7 @@ body {
   .resize-handle, .expand-tab { display:none; }
   .ep-header { flex-wrap:wrap; row-gap:6px; }
   .sample-bar { overflow-x:auto; scrollbar-width:none; }
+  .canvas-chips { right:14px; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }
 }
 
 /* ─── landing ─────────────────────────────────────────────── */

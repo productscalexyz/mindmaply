@@ -10,7 +10,7 @@ import {
 import { SAMPLES, getSampleSource, type SampleId, type Direction, type EdgeStyle } from '../samples'
 import { diagramType, DIAGRAM_TYPE_COLORS } from '../diagram-type'
 import { clampZoom } from '../zoom'
-import { renderFromPayload } from '../render'
+import { renderFromPayload, layoutFromPayload } from '../render'
 import EditorPanel from '../components/EditorPanel'
 import Canvas from '../components/Canvas'
 import ShareModal from '../components/ShareModal'
@@ -85,6 +85,23 @@ export default function Editor() {
     }
     return { color: DIAGRAM_TYPE_COLORS[type], text }
   }, [source, format])
+
+  // Branch chapter chips: one per level-1 branch, positions from the same
+  // layout the renderer uses, so a chip click can center its branch exactly.
+  const chips = useMemo(() => {
+    try {
+      const root = layoutFromPayload({ v: 1, source, format, direction, edgeStyle, sample })
+      return root.children.map((c) => ({
+        id: c.id,
+        label: c.label,
+        color: c.branchColor,
+        x: c.x,
+        y: c.y,
+      }))
+    } catch {
+      return []
+    }
+  }, [source, format, direction, edgeStyle, sample])
 
   // Load a sample's source, keeping the current format. The sample's
   // preferred edge style is just a starting point — both toggles stay live.
@@ -220,6 +237,7 @@ export default function Editor() {
             info={canvasInfo}
             onShare={() => setShareOpen(true)}
             onExport={() => setExportOpen(true)}
+            chips={chips}
           />
         </div>
       </div>

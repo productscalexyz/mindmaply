@@ -34,9 +34,14 @@ function legacyLayoutToEdgeStyle(layout?: 'orthogonal' | 'curved'): EdgeStyle | 
   return undefined
 }
 
-// Shared pipeline: the AST's layout/direction fields already fold the
-// document config over the format defaults, so they act as the doc layer here.
-function renderAST(ast: ParsedAST, options: RenderOptions): string {
+/**
+ * Compute the laid-out node tree for a parsed AST using the same config
+ * resolution as render()/renderMarkdown(), without rasterizing to SVG.
+ * Returns the root LayoutNode; positions (node centers, sizes, branch colors)
+ * are in the same coordinate space as the rendered SVG's viewBox, so
+ * consumers can map nodes to on-screen locations (e.g. navigation chips).
+ */
+export function layoutAST(ast: ParsedAST, options: RenderOptions = {}) {
   const config = resolveConfig(
     {
       direction: ast.direction,
@@ -50,8 +55,14 @@ function renderAST(ast: ParsedAST, options: RenderOptions): string {
     },
   )
   const tree = buildTree(ast, config.theme)
-  const layoutRoot = computeOrthogonalLayout(tree, config.direction, config.theme)
-  return renderSVG(layoutRoot, { ...config, padding: options.padding })
+  return { config, root: computeOrthogonalLayout(tree, config.direction, config.theme) }
+}
+
+// Shared pipeline: the AST's layout/direction fields already fold the
+// document config over the format defaults, so they act as the doc layer here.
+function renderAST(ast: ParsedAST, options: RenderOptions): string {
+  const { config, root } = layoutAST(ast, options)
+  return renderSVG(root, { ...config, padding: options.padding })
 }
 
 /**
