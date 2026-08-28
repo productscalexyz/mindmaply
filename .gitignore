@@ -19,3 +19,4 @@ plans/
 .claude/
 *.local.json
 test_parser_edge.mjs
+TODO.md

@@ -36,7 +36,13 @@ export default function Editor() {
   const [zoom, setZoomRaw] = useState(1)
   const [shareOpen, setShareOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
-  const [collapsed, setCollapsed] = useState(false)
+  // `view=map` on the hash query opens with the source panel collapsed: links
+  // handed to viewers (e.g. the YouTube extension flow) show the map first.
+  // The toggle still works; the param only sets the initial state.
+  const [collapsed, setCollapsed] = useState(() => {
+    const q = window.location.hash.split('?')[1]
+    return q ? new URLSearchParams(q).get('view') === 'map' : false
+  })
   const [svg, setSvg] = useState('')
   // Markdown is the primary editing format — samples are stored as Mermaid, so convert on load
   const [source, setSource] = useState(
