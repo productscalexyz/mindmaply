@@ -5,6 +5,7 @@ import {
   FONT_WEIGHT_PRIMARY,
   FONT_WEIGHT_SECONDARY,
   EXTRA_LINE_FACTOR,
+  mixToward,
 } from '../design'
 import { DEFAULT_THEME, type Theme } from '../config'
 import { fontSizeForDepth } from '../layout/text'
@@ -73,11 +74,14 @@ function renderNodeCard(node: LayoutNode, theme: Theme): string {
 export function renderChildNode(node: LayoutNode, theme: Theme = DEFAULT_THEME): string {
   const weight = node.depth === 1 ? FONT_WEIGHT_PRIMARY : FONT_WEIGHT_SECONDARY
   const card = theme.nodeStyle === 'card' ? renderNodeCard(node, theme) : ''
+  // Labels read in a darker shade of the branch color: the raw palette colors
+  // are edge-stroke vibrant and fall short on contrast against the node card.
+  const ink = mixToward(node.branchColor, theme.textColor, 0.45)
   return [
     card,
     `<text x="${node.x}" y="${node.y}" text-anchor="middle" dominant-baseline="middle"`,
     ` font-family="${theme.fontFamily}" font-size="${fontSizeForDepth(node.depth, theme)}" font-weight="${weight}"`,
-    ` fill="${node.branchColor}">${renderTextContent(node, theme)}</text>`,
+    ` fill="${ink}">${renderTextContent(node, theme)}</text>`,
   ].join('')
 }
 

@@ -56,3 +56,18 @@ export const RADIAL_RADIUS_STEP = 180 // px per depth level
 
 // SVG canvas padding (space around the diagram content)
 export const SVG_CANVAS_PADDING = 60
+
+// Branch palette colors are tuned as edge strokes; as text on the light node
+// card several fall below comfortable reading contrast (the yellow and mint
+// especially). Mixing a color toward the text ink darkens it while keeping
+// its hue identity. Non-hex colors (named/custom) pass through untouched.
+export function mixToward(hex: string, target: string, amount: number): string {
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex) || !/^#[0-9a-fA-F]{6}$/.test(target)) return hex
+  const a = parseInt(hex.slice(1), 16)
+  const b = parseInt(target.slice(1), 16)
+  const mix = (x: number, y: number) => Math.round(x + (y - x) * amount)
+  const r = mix((a >> 16) & 255, (b >> 16) & 255)
+  const g = mix((a >> 8) & 255, (b >> 8) & 255)
+  const bl = mix(a & 255, b & 255)
+  return '#' + ((1 << 24) + (r << 16) + (g << 8) + bl).toString(16).slice(1)
+}
