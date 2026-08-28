@@ -454,8 +454,9 @@ body {
 }
 .landing-badge:hover { color:var(--brand); border-color:var(--brand); }
 .landing-hero h1 {
-  font-size:clamp(34px,6vw,56px); font-weight:800;
+  font-size:clamp(30px,5vw,56px); font-weight:800;
   letter-spacing:-.5px; line-height:1.05;
+  white-space:nowrap; /* one line above the fold; phones wrap (768px media block) */
 }
 .landing-hero p {
   color:var(--tx2); font-size:clamp(16px,2.5vw,20px);
@@ -596,6 +597,7 @@ body {
   .landing-demo-embed { min-height:480px; }
   .landing-demo-code pre { max-height:280px; }
   .landing-hero { padding:48px 20px 36px; }
+  .landing-hero h1 { white-space:normal; }
   .landing-trio-grid { grid-template-columns:1fr; }
   .landing-anywhere-grid { grid-template-columns:1fr; }
   .landing-anywhere-shots { grid-template-columns:1fr; }

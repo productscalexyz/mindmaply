@@ -93,9 +93,9 @@ export default function Landing() {
         >
           Free &amp; open source · MIT License
         </a>
-        <h1>Text to beautiful mind maps.</h1>
+        <h1>Text to beautiful mindmaps.</h1>
         <p>
-          Write Markdown or Mermaid. Get presentation-quality mind maps, org charts,
+          Write Markdown or Mermaid. Get presentation-quality mindmaps, org charts,
           and flowcharts in an instant, with zero dragging or aligning.
         </p>
         <Link to="/editor" className="landing-cta">Open Editor →</Link>
