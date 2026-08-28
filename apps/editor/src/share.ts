@@ -65,3 +65,36 @@ export function buildImgEmbedCode(p: SharePayload): string | null {
   const url = `${API_BASE}/svg?d=${encodeShare(p)}`
   return `<img src="${url}" alt="mindmap" />`
 }
+
+// Ask the API to store the encoded map and hand back a short, content-hash
+// share link (the long self-contained link stays valid either way). Best
+// effort only: resolves to null when the API is unconfigured, unreachable,
+// slow (4s timeout) or unwilling, and the caller keeps the long link.
+export async function shortenShareUrl(p: SharePayload): Promise<{ id: string; url: string } | null> {
+  if (!API_BASE || !SHARE_BASE) return null
+  try {
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 4000)
+    const res = await fetch(`${API_BASE}/shorten`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ d: encodeShare(p) }),
+      signal: ctrl.signal,
+    })
+    clearTimeout(timer)
+    if (!res.ok) return null
+    const body = (await res.json()) as { id?: unknown }
+    if (typeof body.id !== 'string' || !body.id) return null
+    // Build from SHARE_BASE rather than trusting the API's url, so forks and
+    // zone configuration always win.
+    return { id: body.id, url: `${SHARE_BASE}s/${body.id}` }
+  } catch {
+    return null
+  }
+}
+
+// The static-image snippet for a shortened link: /svg resolves short ids too.
+export function buildImgEmbedCodeForId(id: string): string | null {
+  if (!API_BASE) return null
+  return `<img src="${API_BASE}/svg?d=${id}" alt="mindmap" />`
+}
