@@ -27,6 +27,19 @@ import {
 
 type Format = 'mermaid' | 'markdown'
 
+// Was the editor opened in map-first mode (`view=map` on the hash query, the
+// YouTube extension flow)? Read once at mount, like the shared payload.
+function openedWithMapView(): boolean {
+  const q = window.location.hash.split('?')[1]
+  return q ? new URLSearchParams(q).get('view') === 'map' : false
+}
+
+// Append view=map to a share link: `?` for /s landing URLs, `&` for hash-route
+// editor links (whose payload query already starts with ?d=).
+function withMapView(url: string): string {
+  return `${url}${url.includes('#/') ? '&' : '?'}view=map`
+}
+
 export default function Editor() {
   // If the page was opened from a shared link (#/editor?d=...), seed the
   // initial state from it. Read once at mount; bad/garbled params -> null.
@@ -46,11 +59,11 @@ export default function Editor() {
   const [exportOpen, setExportOpen] = useState(false)
   // `view=map` on the hash query opens with the source panel collapsed: links
   // handed to viewers (e.g. the YouTube extension flow) show the map first.
-  // The toggle still works; the param only sets the initial state.
-  const [collapsed, setCollapsed] = useState(() => {
-    const q = window.location.hash.split('?')[1]
-    return q ? new URLSearchParams(q).get('view') === 'map' : false
-  })
+  // The toggle still works; the param only sets the initial state. Shares
+  // made from such a session inherit it (mapFirst), so a re-shared link keeps
+  // hiding the markdown for the next viewer too.
+  const mapFirst = useRef(openedWithMapView()).current
+  const [collapsed, setCollapsed] = useState(mapFirst)
   const [svg, setSvg] = useState('')
   // Markdown is the primary editing format — samples are stored as Mermaid, so convert on load
   const [source, setSource] = useState(
@@ -66,8 +79,9 @@ export default function Editor() {
   // of the diagram when pasted (Slack, X, …), then redirects into the editor.
   const shareUrl = useMemo(() => {
     const payload = { v: 1, source, format, direction, edgeStyle, sample } as const
-    return buildShareApiUrl(payload) ?? buildShareUrl(payload)
-  }, [source, format, direction, edgeStyle, sample])
+    const url = buildShareApiUrl(payload) ?? buildShareUrl(payload)
+    return mapFirst ? withMapView(url) : url
+  }, [source, format, direction, edgeStyle, sample, mapFirst])
   const embedCode = useMemo(() => {
     const url = buildEmbedUrl({ v: 1, source, format, direction, edgeStyle, sample })
     return `<iframe src="${url}" width="800" height="500" style="border:0;border-radius:12px" loading="lazy"></iframe>`
@@ -275,7 +289,7 @@ export default function Editor() {
       </div>
       {shareOpen && (
         <ShareModal
-          url={shortLink?.url ?? shareUrl}
+          url={shortLink ? (mapFirst ? withMapView(shortLink.url) : shortLink.url) : shareUrl}
           embedCode={embedCode}
           imgCode={(shortLink && buildImgEmbedCodeForId(shortLink.id)) ?? imgCode}
           onClose={() => setShareOpen(false)}
