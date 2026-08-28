@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { copyPngToClipboard } from '../export'
 
 interface Props {
   /** Editor link encoding the whole diagram. */
@@ -7,6 +8,8 @@ interface Props {
   embedCode: string
   /** Optional static <img> snippet (only once the render API is live). */
   imgCode?: string | null
+  /** Rendered SVG of the current map, for the copy-as-image action. */
+  svg?: string
   onClose: () => void
 }
 
@@ -36,7 +39,34 @@ function CopyRow({ label, value, multiline }: { label: string; value: string; mu
   )
 }
 
-export default function ShareModal({ url, embedCode, imgCode, onClose }: Props) {
+// Copies the map itself (2x PNG) onto the clipboard, for pasting straight
+// into chat, docs, or email without touching a file.
+function CopyImageRow({ svg }: { svg: string }) {
+  const [state, setState] = useState<'idle' | 'busy' | 'copied' | 'failed'>('idle')
+  async function copy() {
+    setState('busy')
+    try {
+      await copyPngToClipboard(svg)
+      setState('copied')
+    } catch {
+      setState('failed')
+    }
+    setTimeout(() => setState('idle'), 1600)
+  }
+  return (
+    <div className="share-field">
+      <div className="share-field-label">Image (PNG)</div>
+      <div className="url-row">
+        <div className="url-input share-img-hint">Paste it straight into chat, docs, or email.</div>
+        <button className="copy-btn" onClick={copy} disabled={state === 'busy'}>
+          {state === 'copied' ? 'Copied!' : state === 'failed' ? 'Not supported' : 'Copy image'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export default function ShareModal({ url, embedCode, imgCode, svg, onClose }: Props) {
   function handleOverlayClick(e: React.MouseEvent<HTMLDivElement>) {
     if (e.target === e.currentTarget) onClose()
   }
@@ -51,6 +81,7 @@ export default function ShareModal({ url, embedCode, imgCode, onClose }: Props) 
         </div>
 
         <CopyRow label="Link (view &amp; edit)" value={url} />
+        {svg && <CopyImageRow svg={svg} />}
         <CopyRow label="Embed (interactive iframe)" value={embedCode} multiline />
         {imgCode && <CopyRow label="Embed (static image)" value={imgCode} multiline />}
 
