@@ -43,7 +43,7 @@ export default function ExportModal({ svg, source, sourceFormat, baseName, onClo
   return (
     <div className="overlay" onClick={handleOverlayClick}>
       <div className="modal">
-        <div className="modal-hd">Export diagram</div>
+        <div className="modal-hd">Export mind map</div>
         <div className="modal-sub">Choose a format to download.</div>
 
         <div className="share-type">
