@@ -15,7 +15,15 @@ import EditorPanel from '../components/EditorPanel'
 import Canvas from '../components/Canvas'
 import ShareModal from '../components/ShareModal'
 import ExportModal from '../components/ExportModal'
-import { readSharedFromUrl, buildShareUrl, buildShareApiUrl, buildEmbedUrl, buildImgEmbedCode } from '../share'
+import {
+  readSharedFromUrl,
+  buildShareUrl,
+  buildShareApiUrl,
+  buildEmbedUrl,
+  buildImgEmbedCode,
+  shortenShareUrl,
+  buildImgEmbedCodeForId,
+} from '../share'
 
 type Format = 'mermaid' | 'markdown'
 
@@ -68,6 +76,22 @@ export default function Editor() {
     () => buildImgEmbedCode({ v: 1, source, format, direction, edgeStyle, sample }),
     [source, format, direction, edgeStyle, sample]
   )
+
+  // Opening the Share modal asks the API to store the map and hand back a
+  // short link (long URLs choke social platforms). The long link shows
+  // instantly and simply stays if the request fails or the API is unset.
+  const [shortLink, setShortLink] = useState<{ id: string; url: string } | null>(null)
+  useEffect(() => {
+    if (!shareOpen) return
+    setShortLink(null)
+    let cancelled = false
+    shortenShareUrl({ v: 1, source, format, direction, edgeStyle, sample }).then((r) => {
+      if (!cancelled && r) setShortLink(r)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [shareOpen, source, format, direction, edgeStyle, sample])
 
   const setZoom = useCallback((z: number) => setZoomRaw(clampZoom(z)), [])
 
@@ -251,9 +275,9 @@ export default function Editor() {
       </div>
       {shareOpen && (
         <ShareModal
-          url={shareUrl}
+          url={shortLink?.url ?? shareUrl}
           embedCode={embedCode}
-          imgCode={imgCode}
+          imgCode={(shortLink && buildImgEmbedCodeForId(shortLink.id)) ?? imgCode}
           onClose={() => setShareOpen(false)}
         />
       )}
