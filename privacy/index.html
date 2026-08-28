@@ -61,8 +61,10 @@
 
   <h2>Your mind maps stay with you</h2>
   <p>The editor runs entirely in your browser. Typing in it does not upload anything, and
-     there is no database of mind maps. When you share a map, the <strong>entire map is
-     encoded into the link itself</strong>. That has two consequences worth knowing:</p>
+     there is no database of your work in progress. When you share a map, the <strong>entire
+     map is encoded into the link itself</strong>, and the editor also asks our API to store
+     that encoded map under a short id, so the link you paste can be short. Two consequences
+     worth knowing:</p>
   <ul>
     <li>Anyone you give a link to can read that map. The link is the document.</li>
     <li>Links can end up in the logs of services that handle them (chat apps, link
@@ -83,8 +85,10 @@
      from text, images, or video links you provide. For these, the map source or your
      input is sent to the API to produce the result, and nothing else.</p>
   <ul>
-    <li>The API keeps no copy of your maps. Responses are generated from the request;
-        preview images may be cached by the CDN for the share link they belong to.</li>
+    <li>The API stores a copy of a map only when you share it: the encoded map behind the
+        short link, kept so the link keeps working. Rendering, preview, and AI requests
+        keep no copy; responses are generated from the request, and preview images may be
+        cached by the CDN for the share link they belong to.</li>
     <li>Requests can appear in short-lived operational logs (things like IP address, URL,
         and status code) used for debugging and abuse prevention.</li>
     <li>AI generation runs on Cloudflare Workers AI. We do not use your content to train
