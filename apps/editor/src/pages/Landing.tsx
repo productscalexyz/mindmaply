@@ -18,7 +18,7 @@ const DEMO_SOURCE = `flowchart LR
   C --> C1["Valid Mermaid anywhere"]
   C --> C2["Share with just a URL"]
   D --> D1["No dragging, no aligning"]
-  D --> D2["Diagram out, instantly"]`
+  D --> D2["Mind map out, instantly"]`
 
 // The roadmap is itself a mindmaply diagram, rendered by the engine.
 const ROADMAP_SOURCE = `flowchart LR
@@ -36,7 +36,17 @@ const ROADMAP_SOURCE = `flowchart LR
 function Brand() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-      <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--brand)', display: 'inline-block' }} />
+      <svg width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <circle cx="9" cy="16" r="4.4" stroke="var(--brand)" strokeWidth="2.2" />
+        <g stroke="var(--brand)" strokeWidth="1.9" strokeLinecap="round">
+          <path d="M13.4 16 C18.5 16 17.5 7.5 22.8 7.5" />
+          <path d="M13.4 16 C17.5 16 18.5 16 23.2 16" />
+          <path d="M13.4 16 C18.5 16 17.5 24.5 22.8 24.5" />
+        </g>
+        <circle cx="25.3" cy="7.5" r="2.1" fill="var(--brand)" />
+        <circle cx="25.6" cy="16" r="2.1" fill="var(--brand)" />
+        <circle cx="25.3" cy="24.5" r="2.1" fill="var(--brand)" />
+      </svg>
       <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: '-.4px' }}>mindmaply</span>
     </div>
   )
@@ -82,7 +92,7 @@ export default function Landing() {
         >
           Free &amp; open source · MIT License
         </a>
-        <h1>Text to beautiful diagrams.</h1>
+        <h1>Text to beautiful mind maps.</h1>
         <p>
           Write Markdown or Mermaid. Get presentation-quality mind maps, org charts,
           and flowcharts in an instant, with zero dragging or aligning.
@@ -112,17 +122,17 @@ export default function Landing() {
       </p>
 
       <section className="landing-trio">
-        <h2>Why diagrams as code beats drag-and-drop</h2>
+        <h2>Why mind maps as code beat drag-and-drop</h2>
         <p className="landing-trio-intro">
-          Diagrams as code, diagrams as text: a few lines of Markdown or Mermaid.js,
+          Mind maps as code, mind maps as text: a few lines of Markdown or Mermaid.js,
           zero dragging, aligning, or design decisions.
         </p>
         <div className="landing-trio-grid">
           <div className="landing-trio-card">
             <h3><span className="landing-trio-dot" style={{ background: 'var(--b1)' }} />Write text, not drag boxes</h3>
             <p>
-              The same text always produces the same diagram. No arranging shapes,
-              and AI assistants can write your diagrams for you.
+              The same text always produces the same mind map. No arranging shapes,
+              and AI assistants can write your mind maps for you.
             </p>
           </div>
           <div className="landing-trio-card">
@@ -133,7 +143,7 @@ export default function Landing() {
             </p>
           </div>
           <div className="landing-trio-card">
-            <h3><span className="landing-trio-dot" style={{ background: 'var(--b3)' }} />Two dialects, one diagram</h3>
+            <h3><span className="landing-trio-dot" style={{ background: 'var(--b3)' }} />Two dialects, one mind map</h3>
             <p>
               Write a Markdown outline or standard Mermaid.js. Mindmaply renders
               both and converts between them.
@@ -143,7 +153,7 @@ export default function Landing() {
       </section>
 
       <section className="landing-anywhere">
-        <h2>Your diagram, anywhere</h2>
+        <h2>Your mind map, anywhere</h2>
         <div className="landing-anywhere-grid">
           <div className="landing-anywhere-item">
             <h3>Export</h3>
@@ -151,7 +161,7 @@ export default function Landing() {
           </div>
           <div className="landing-anywhere-item">
             <h3>Share</h3>
-            <p>The whole diagram is encoded in the link. No account, no server.</p>
+            <p>The whole mind map is encoded in the link. No account, no server.</p>
           </div>
           <div className="landing-anywhere-item">
             <h3>Embed</h3>

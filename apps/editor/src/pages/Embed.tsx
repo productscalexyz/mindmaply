@@ -23,7 +23,7 @@ export default function Embed() {
   }, [payload])
 
   if (!payload) {
-    return <div className="embed-empty">No diagram to display.</div>
+    return <div className="embed-empty">No mind map to display.</div>
   }
 
   return (

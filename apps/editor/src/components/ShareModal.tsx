@@ -44,10 +44,10 @@ export default function ShareModal({ url, embedCode, imgCode, onClose }: Props) 
   return (
     <div className="overlay" onClick={handleOverlayClick}>
       <div className="modal">
-        <div className="modal-hd">Share diagram</div>
+        <div className="modal-hd">Share mind map</div>
         <div className="modal-sub">
-          The whole diagram is encoded in these links. No account needed.
-          {imgCode && ' Pasted links unfurl with a live preview of the diagram.'}
+          The whole mind map is encoded in these links. No account needed.
+          {imgCode && ' Pasted links unfurl with a live preview of the mind map.'}
         </div>
 
         <CopyRow label="Link (view &amp; edit)" value={url} />
