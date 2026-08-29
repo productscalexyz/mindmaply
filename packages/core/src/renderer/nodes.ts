@@ -5,6 +5,7 @@ import {
   FONT_WEIGHT_PRIMARY,
   FONT_WEIGHT_SECONDARY,
   EXTRA_LINE_FACTOR,
+  NODE_BG,
   mixToward,
 } from '../design'
 import { DEFAULT_THEME, type Theme } from '../config'
@@ -64,10 +65,16 @@ function renderNodeCard(node: LayoutNode, theme: Theme): string {
   const fs = fontSizeForDepth(node.depth, theme)
   const textBlockHeight = fs + (node.lines.length - 1) * fs * EXTRA_LINE_FACTOR
   const cardHeight = textBlockHeight + NODE_PADDING_V * 2
+  // Cards take a light wash of their branch color (12% over white): they
+  // separate from the near-identical grey canvas by hue rather than by yet
+  // another grey, and the branch identity reads at every depth. An explicit
+  // theme.nodeBg override still wins (checked against the default).
+  const fill =
+    theme.nodeBg === NODE_BG ? mixToward('#FFFFFF', node.branchColor, 0.12) : theme.nodeBg
   return (
     `<rect x="${node.x - node.width / 2}" y="${node.y - cardHeight / 2}"` +
     ` width="${node.width}" height="${cardHeight}" rx="${ROOT_BORDER_RADIUS}"` +
-    ` fill="${theme.nodeBg}" filter="url(#mm-shadow)"/>`
+    ` fill="${fill}" filter="url(#mm-shadow)"/>`
   )
 }
 
@@ -76,7 +83,9 @@ export function renderChildNode(node: LayoutNode, theme: Theme = DEFAULT_THEME):
   const card = theme.nodeStyle === 'card' ? renderNodeCard(node, theme) : ''
   // Labels read in a darker shade of the branch color: the raw palette colors
   // are edge-stroke vibrant and fall short on contrast against the node card.
-  const ink = mixToward(node.branchColor, theme.textColor, 0.45)
+  // Leaves (regular weight, smaller type) need a deeper mix than the bold
+  // branch headings to stay comfortably readable on the tinted card.
+  const ink = mixToward(node.branchColor, theme.textColor, node.depth === 1 ? 0.5 : 0.72)
   return [
     card,
     `<text x="${node.x}" y="${node.y}" text-anchor="middle" dominant-baseline="middle"`,

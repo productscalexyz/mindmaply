@@ -5,6 +5,7 @@ import { buildTree } from '../src/tree'
 import { parse } from '../src/parser'
 import { toMarkdown, toMermaid } from '../src/serializers'
 import { DEFAULT_THEME } from '../src/config'
+import { mixToward, PALETTE } from '../src/design'
 
 const SIMPLE = `flowchart LR
   root["Site"]
@@ -224,6 +225,20 @@ describe('renderSVG() — node cards', () => {
       expect(card).toContain('filter="url(#mm-shadow)"')
       expect(card).not.toContain('stroke')
     }
+  })
+
+  it('default-theme cards take a 12% branch tint; labels a 72% (leaf) / 50% (heading) ink', () => {
+    const layout = computeOrthogonalLayout(buildTree(parse(SIMPLE)), 'LR', DEFAULT_THEME)
+    const svg = renderSVG(layout)
+    // First branch is the first palette color (blue).
+    const tint = mixToward('#FFFFFF', PALETTE[0], 0.12)
+    const headingInk = mixToward(PALETTE[0], DEFAULT_THEME.textColor, 0.5)
+    const leafInk = mixToward(PALETTE[0], DEFAULT_THEME.textColor, 0.72)
+    expect(svg).toContain(`fill="${tint}"`)
+    expect(svg).toContain(`fill="${headingInk}"`)
+    expect(svg).toContain(`fill="${leafInk}"`)
+    // The old flat grey card fill is gone from the default render.
+    expect(svg).not.toContain('fill="#EEF1F4"')
   })
 
   it('all cards share the root border radius, regardless of line count or shape', () => {
