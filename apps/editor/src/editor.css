@@ -257,6 +257,11 @@ body {
   border:1px solid rgba(0,0,0,.10);
 }
 .ca-export:hover { background:rgba(255,255,255,.98); color:var(--tx); }
+.ca-ext {
+  background:rgba(255,255,255,.88); color:var(--tx2);
+  border:1px solid rgba(0,0,0,.10); text-decoration:none;
+}
+.ca-ext:hover { background:rgba(255,255,255,.98); color:var(--tx); }
 .ca-share {
   background:var(--brand); color:white; border:1px solid var(--brand);
   box-shadow:0 2px 8px rgba(236,91,1,.28);
@@ -449,8 +454,9 @@ body {
 }
 .landing-badge:hover { color:var(--brand); border-color:var(--brand); }
 .landing-hero h1 {
-  font-size:clamp(34px,6vw,56px); font-weight:800;
+  font-size:clamp(30px,5vw,56px); font-weight:800;
   letter-spacing:-.5px; line-height:1.05;
+  white-space:nowrap; /* one line above the fold; phones wrap (768px media block) */
 }
 .landing-hero p {
   color:var(--tx2); font-size:clamp(16px,2.5vw,20px);
@@ -522,7 +528,7 @@ body {
   max-width:880px; margin:0 auto 80px; padding:0 24px;
 }
 .landing-anywhere h2 { font-size:24px; font-weight:800; letter-spacing:-.4px; margin-bottom:20px; text-align:center; }
-.landing-anywhere-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; text-align:center; }
+.landing-anywhere-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; text-align:center; }
 .landing-anywhere-item h3 { font-size:15px; font-weight:700; margin-bottom:6px; }
 .landing-anywhere-item p { color:var(--tx2); font-size:14px; line-height:1.6; }
 .landing-anywhere-shots {
@@ -591,6 +597,7 @@ body {
   .landing-demo-embed { min-height:480px; }
   .landing-demo-code pre { max-height:280px; }
   .landing-hero { padding:48px 20px 36px; }
+  .landing-hero h1 { white-space:normal; }
   .landing-trio-grid { grid-template-columns:1fr; }
   .landing-anywhere-grid { grid-template-columns:1fr; }
   .landing-anywhere-shots { grid-template-columns:1fr; }

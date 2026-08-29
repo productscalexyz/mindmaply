@@ -1,6 +1,7 @@
 import { useRef, useEffect, useCallback, useState } from 'react'
 import ZoomCluster from './ZoomCluster'
 import { clampZoom } from '../zoom'
+import { CHROME_EXTENSION_URL } from '../extension'
 
 export interface BranchChip {
   id: string
@@ -194,6 +195,19 @@ export default function Canvas({
       {/* top-right: actions (editor only) */}
       {!embed && (
         <div className="canvas-actions">
+          <a
+            className="ca-btn ca-ext"
+            href={CHROME_EXTENSION_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Turn YouTube videos into mind maps: get the Chrome extension"
+          >
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+              <rect x="1" y="3" width="14" height="10" rx="2.5" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M6.8 6.2v3.6L9.9 8z" fill="currentColor" />
+            </svg>
+            YouTube
+          </a>
           <button className="ca-btn ca-export" onClick={onExport}>
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
               <path d="M8 2v9M5 8l3 3 3-3M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

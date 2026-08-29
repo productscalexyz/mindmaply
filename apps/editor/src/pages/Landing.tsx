@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { render } from 'mindmaply-core'
 import { highlight } from '../highlight'
 import { buildEmbedUrl } from '../share'
+import { CHROME_EXTENSION_URL } from '../extension'
 
 // The hero demo's content IS the value story — rendered live by mindmaply-core.
 const DEMO_SOURCE = `flowchart LR
@@ -92,9 +93,9 @@ export default function Landing() {
         >
           Free &amp; open source · MIT License
         </a>
-        <h1>Text to beautiful mind maps.</h1>
+        <h1>Text to beautiful mindmaps.</h1>
         <p>
-          Write Markdown or Mermaid. Get presentation-quality mind maps, org charts,
+          Write Markdown or Mermaid. Get presentation-quality mindmaps, org charts,
           and flowcharts in an instant, with zero dragging or aligning.
         </p>
         <Link to="/editor" className="landing-cta">Open Editor →</Link>
@@ -166,6 +167,15 @@ export default function Landing() {
           <div className="landing-anywhere-item">
             <h3>Embed</h3>
             <p>Drop an interactive iframe into any page. The demo above is one.</p>
+          </div>
+          <div className="landing-anywhere-item">
+            <h3>YouTube</h3>
+            <p>
+              Turn any video into a mind map with the{' '}
+              <a href={CHROME_EXTENSION_URL} className="docs-link" target="_blank" rel="noreferrer">
+                Chrome extension
+              </a>.
+            </p>
           </div>
         </div>
         <div className="landing-anywhere-shots">
