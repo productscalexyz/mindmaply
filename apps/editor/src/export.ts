@@ -32,12 +32,8 @@ function svgDimensions(svg: string): { width: number; height: number } {
   return { width: 1024, height: 768 }
 }
 
-export function exportPng(
-  svg: string,
-  filename: string,
-  scale: PngScale,
-  background: PngBackground,
-): Promise<void> {
+// Rasterize the SVG to a PNG blob on a canvas (browser-side, no server).
+function renderPngBlob(svg: string, scale: PngScale, background: PngBackground): Promise<Blob> {
   const { width, height } = svgDimensions(svg)
   const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }))
 
@@ -56,9 +52,9 @@ export function exportPng(
         }
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
         canvas.toBlob((blob) => {
-          if (blob) downloadBlob(blob, filename)
           URL.revokeObjectURL(url)
-          resolve()
+          if (blob) resolve(blob)
+          else reject(new Error('Could not encode PNG'))
         }, 'image/png')
       } catch (err) {
         URL.revokeObjectURL(url)
@@ -71,4 +67,25 @@ export function exportPng(
     }
     img.src = url
   })
+}
+
+export async function exportPng(
+  svg: string,
+  filename: string,
+  scale: PngScale,
+  background: PngBackground,
+): Promise<void> {
+  downloadBlob(await renderPngBlob(svg, scale, background), filename)
+}
+
+// Copy the rendered map to the clipboard as a PNG (2x, white background: chat
+// apps and docs composite transparent PNGs unpredictably). Safari only honors
+// clipboard writes made inside the user gesture, so the ClipboardItem gets
+// the blob PROMISE rather than the awaited blob.
+export async function copyPngToClipboard(svg: string, scale: PngScale = 2): Promise<void> {
+  if (typeof ClipboardItem === 'undefined' || !navigator.clipboard?.write) {
+    throw new Error('Copying images is not supported in this browser')
+  }
+  const blob = renderPngBlob(svg, scale, 'white')
+  await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
 }

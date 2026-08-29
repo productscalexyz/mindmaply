@@ -292,6 +292,7 @@ export default function Editor() {
           url={shortLink ? (mapFirst ? withMapView(shortLink.url) : shortLink.url) : shareUrl}
           embedCode={embedCode}
           imgCode={(shortLink && buildImgEmbedCodeForId(shortLink.id)) ?? imgCode}
+          svg={svg}
           onClose={() => setShareOpen(false)}
         />
       )}
