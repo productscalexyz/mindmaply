@@ -98,7 +98,17 @@ export default function Landing() {
           Write Markdown or Mermaid. Get presentation-quality mindmaps, org charts,
           and flowcharts in an instant, with zero dragging or aligning.
         </p>
-        <Link to="/editor" className="landing-cta">Open Editor →</Link>
+        <div className="landing-hero-ctas">
+          <Link to="/editor" className="landing-cta">Open Editor →</Link>
+          <a
+            href={CHROME_EXTENSION_URL}
+            className="landing-cta landing-cta-ghost"
+            target="_blank"
+            rel="noreferrer"
+          >
+            YouTube → mind map extension
+          </a>
+        </div>
       </header>
 
       <section className="landing-demo landing-demo-tight">
@@ -198,10 +208,45 @@ export default function Landing() {
         </div>
       </section>
 
+      <section className="landing-yt">
+        <h2>From YouTube video to mind map, one click</h2>
+        <p className="landing-yt-intro">
+          The Mindmaply Chrome extension adds a button to the YouTube player.
+          Click it, and the whole talk becomes a shareable mind map: every story,
+          argument and example as readable branches, in the language of the video.
+        </p>
+        <div className="landing-anywhere-shots">
+          <figure>
+            <img
+              src="/landing/youtube-button.jpg"
+              alt="The Mindmaply button in the YouTube player controls"
+              loading="lazy"
+            />
+            <figcaption>One button in the player, no copy-pasting</figcaption>
+          </figure>
+          <figure>
+            <img
+              src="/landing/youtube-map.png"
+              alt="A generated mind map of a TED talk with readable branches"
+              loading="lazy"
+            />
+            <figcaption>The same talk, mapped and shareable</figcaption>
+          </figure>
+        </div>
+        <a
+          href={CHROME_EXTENSION_URL}
+          className="landing-cta landing-yt-cta"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Get the Chrome extension →
+        </a>
+      </section>
+
       <section className="landing-oss">
         <h2>Free and open source, all the way down</h2>
         <p>
-          Mindmaply is free to use and MIT-licensed — no accounts, no paywalls, no premium tier.
+          Mindmaply is free to use and MIT-licensed: no accounts, no paywalls, no premium tier.
           At its heart is <code>mindmaply-core</code>, a pure-function engine that turns Markdown
           or Mermaid.js into presentation-quality SVG. No DOM, no canvas, no closed ecosystem: it
           runs in the browser, in Node, in your CI, or inside an AI pipeline. The editor you see

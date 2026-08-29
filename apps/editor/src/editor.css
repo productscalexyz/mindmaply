@@ -442,6 +442,11 @@ body {
 }
 .landing-cta:hover { background:var(--brand-b); }
 .landing-cta-sm { padding:7px 16px; font-size:13px; border-radius:7px; }
+.landing-hero-ctas { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+.landing-cta-ghost {
+  background:#fff; color:var(--brand); border:1px solid var(--bd2);
+}
+.landing-cta-ghost:hover { background:#fff; border-color:var(--brand); }
 .landing-hero {
   text-align:center; padding:72px 24px 48px;
   max-width:760px; margin:0 auto;
@@ -543,6 +548,16 @@ body {
 .landing-anywhere-shots figcaption {
   text-align:center; color:var(--tx3); font-size:13px; margin-top:8px;
 }
+.landing-yt {
+  max-width:1000px; margin:0 auto 80px; padding:0 24px; text-align:center;
+}
+.landing-yt h2 { font-size:24px; font-weight:800; letter-spacing:-.4px; margin-bottom:12px; }
+.landing-yt-intro {
+  color:var(--tx2); font-size:16px; line-height:1.7;
+  max-width:640px; margin:0 auto;
+}
+.landing-yt .landing-cta { margin-top:28px; }
+
 .landing-oss {
   max-width:680px; margin:0 auto 80px; padding:0 24px; text-align:center;
 }
