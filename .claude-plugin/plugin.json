@@ -1,0 +1,13 @@
+{
+  "name": "mindmaply",
+  "displayName": "Mindmaply",
+  "description": "Build, validate, and share mind maps, org charts, and flowcharts as polished SVG. Writes a Markdown outline or a Mermaid subset, validates it, renders it, and hands back share and embed links.",
+  "version": "0.3.0",
+  "author": {
+    "name": "productscalexyz",
+    "url": "https://github.com/productscalexyz"
+  },
+  "homepage": "https://mindmaply.app/agents/",
+  "repository": "https://github.com/productscalexyz/mindmaply",
+  "license": "MIT"
+}

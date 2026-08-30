@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build && cp dist/index.html dist/404.html",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "gen:llms": "node scripts/gen-llms.mjs",
+    "prebuild": "node scripts/gen-llms.mjs"
   },
   "dependencies": {
     "lz-string": "^1.5.0",

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mindmaply for AI agents</title>
+  <meta name="description" content="Install the Mindmaply Agent Skill in Claude Code, Codex, Cursor, Copilot, or Gemini, or call the CLI and HTTP API directly. Text in, polished SVG mind map out, deterministically." />
+  <link rel="canonical" href="https://mindmaply.app/agents/" />
+  <meta name="theme-color" content="#ec5b01" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta property="og:title" content="Mindmaply for AI agents" />
+  <meta property="og:description" content="One command teaches your AI assistant to build, validate, and share mind maps. Or skip the skill and call the CLI or HTTP API." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://mindmaply.app/agents/" />
+  <meta property="og:image" content="https://mindmaply.app/og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #12141b; color: #e7e9ee;
+           font: 16px/1.65 Inter, system-ui, sans-serif; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 48px 20px 64px; }
+    header { display: flex; align-items: center; gap: 10px; margin-bottom: 40px; }
+    header a { display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; }
+    header .name { font-weight: 700; font-size: 18px; letter-spacing: -.2px; }
+    h1 { font-size: 34px; font-weight: 700; letter-spacing: -.6px; margin: 0 0 10px; }
+    .lede { color: #c7ccd6; font-size: 18px; margin: 0 0 36px; }
+    h2 { font-size: 21px; font-weight: 600; letter-spacing: -.3px; margin: 44px 0 12px;
+         padding-top: 22px; border-top: 1px solid #232837; }
+    h3 { font-size: 16px; font-weight: 600; margin: 26px 0 8px; }
+    p, li { color: #c7ccd6; }
+    p { margin: 0 0 14px; }
+    ul { margin: 0 0 14px; padding-left: 22px; }
+    li { margin-bottom: 6px; }
+    a { color: #ff7425; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    strong { color: #e7e9ee; }
+    code { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+           font-size: .89em; background: #1b1f2a; border: 1px solid #262c3a;
+           border-radius: 5px; padding: 1px 5px; color: #e7e9ee; }
+    pre { background: #1b1f2a; border: 1px solid #262c3a; border-radius: 10px;
+          padding: 14px 16px; overflow-x: auto; margin: 0 0 16px; }
+    pre code { background: none; border: 0; padding: 0; font-size: 13.5px; line-height: 1.6; }
+    .cmd { border-color: #3a2a1b; background: #1e1913; }
+    table { width: 100%; border-collapse: collapse; margin: 0 0 18px; font-size: 14.5px;
+            display: block; overflow-x: auto; }
+    th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid #232837;
+             vertical-align: top; }
+    th { color: #9aa1af; font-weight: 600; font-size: 13px; text-transform: uppercase;
+         letter-spacing: .4px; white-space: nowrap; }
+    td code { white-space: nowrap; }
+    .tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; padding: 0; list-style: none; }
+    .tools li { background: #1b1f2a; border: 1px solid #262c3a; border-radius: 999px;
+                padding: 5px 13px; font-size: 14px; margin: 0; color: #c7ccd6; }
+    .note { border-left: 2px solid #ec5b01; padding: 2px 0 2px 14px; margin: 0 0 16px;
+            color: #9aa1af; font-size: 14.5px; }
+    footer { margin-top: 52px; padding-top: 20px; border-top: 1px solid #232837;
+             font-size: 14px; color: #9aa1af; display: flex; flex-wrap: wrap; gap: 16px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="/">
+      <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <circle cx="9" cy="16" r="4.4" stroke="#ec5b01" stroke-width="2.2"/>
+        <g stroke="#ec5b01" stroke-width="1.9" stroke-linecap="round">
+          <path d="M13.4 16 C18.5 16 17.5 7.5 22.8 7.5"/>
+          <path d="M13.4 16 C17.5 16 18.5 16 23.2 16"/>
+          <path d="M13.4 16 C18.5 16 17.5 24.5 22.8 24.5"/>
+        </g>
+        <circle cx="25.3" cy="7.5" r="2.1" fill="#ec5b01"/>
+        <circle cx="25.6" cy="16" r="2.1" fill="#ec5b01"/>
+        <circle cx="25.3" cy="24.5" r="2.1" fill="#ec5b01"/>
+      </svg>
+      <span class="name">mindmaply</span>
+    </a>
+  </header>
+
+  <h1>Mindmaply for AI agents</h1>
+  <p class="lede">Diagramming tools expect a human with a mouse. Mindmaply expects text.
+     The same source always produces the same diagram, so an agent can write a mind map
+     the way it writes code: generate, validate, render, hand over a link.</p>
+
+  <h2>Why an agent can actually use this</h2>
+  <ul>
+    <li><strong>Deterministic.</strong> No canvas, no dragging, no layout choices. Layout,
+        spacing, and colour are decided by the renderer.</li>
+    <li><strong>Verifiable.</strong> <code>mindmaply validate</code> exits 1 and prints
+        <code>line N: message</code> for every bad line, so a model can fix its own output
+        in a loop instead of guessing.</li>
+    <li><strong>Offline.</strong> Rendering and validation need no network. Only share
+        links and PNGs do.</li>
+    <li><strong>Structured output.</strong> The API returns a parsed <code>model</code>
+        graph of nodes and edges alongside the SVG, so the next step in a pipeline reads
+        data rather than pixels.</li>
+  </ul>
+
+  <h2>1. Install the Agent Skill</h2>
+  <p>The richest option. It teaches your assistant the grammar, the quality bar for a
+     good map, and the whole render, validate, and share workflow. One command installs
+     it into every compatible agent it finds on your machine:</p>
+  <pre class="cmd"><code>npx skills add productscalexyz/mindmaply</code></pre>
+  <ul class="tools">
+    <li>Claude Code</li><li>Codex</li><li>Cursor</li><li>Windsurf</li>
+    <li>GitHub Copilot</li><li>Gemini</li>
+  </ul>
+  <p>To install by hand, copy
+     <a href="https://github.com/productscalexyz/mindmaply/tree/main/skills/mindmaply" target="_blank" rel="noreferrer"><code>skills/mindmaply</code></a>
+     into your agent's skills directory:</p>
+  <table>
+    <tr><th>Tool</th><th>Directory</th></tr>
+    <tr><td>Claude Code</td><td><code>.claude/skills/</code></td></tr>
+    <tr><td>Codex</td><td><code>~/.agents/skills/</code></td></tr>
+    <tr><td>Cursor</td><td><code>.cursor/skills/</code></td></tr>
+    <tr><td>GitHub Copilot</td><td><code>.github/skills/</code></td></tr>
+  </table>
+  <p>For claude.ai, zip the <code>skills/mindmaply</code> folder and upload it under
+     Settings, then Skills. No build step is needed: the skill drives the published npm
+     package through <code>npx</code>.</p>
+
+  <h3>As a Claude Code plugin</h3>
+  <p>Claude Code can also install it as a plugin, which keeps it updated with the repo:</p>
+  <pre><code>/plugin marketplace add productscalexyz/mindmaply
+/plugin install mindmaply@mindmaply</code></pre>
+
+  <h2>2. Call the CLI</h2>
+  <p>No skill, no install, no account. Works in any shell and in CI.</p>
+  <pre><code>npx -y mindmaply-core render map.md -o map.svg</code></pre>
+  <pre><code>mindmaply render   [file] [--format markdown|mermaid] [--direction LR|TD]
+                          [--edge-style curved|straight] [-o out.svg]
+mindmaply validate [file] [--format ...]   # exit 1 + line errors if invalid
+mindmaply share    [file] [--short]        # share, embed, and image URLs as JSON
+mindmaply convert  [file] --to markdown|mermaid</code></pre>
+  <p>Source comes from a file argument or stdin, so it pipes:</p>
+  <pre><code>printf '# Plan\n- research\n- build\n' | npx -y mindmaply-core render - -o plan.svg</code></pre>
+  <p><code>--format</code> is auto-detected. Default direction is LR, and TD suits org
+     charts and top-down flows. <code>share --short</code> returns a tidy
+     <code>mindmaply.app/s/&lt;id&gt;</code> link instead of one carrying the whole encoded map.</p>
+
+  <h2>3. Call the HTTP API</h2>
+  <p>No Node at all. The base is <code>https://api.mindmaply.app</code> and CORS is open.</p>
+  <pre><code>curl -X POST https://api.mindmaply.app/render \
+  -H 'content-type: application/json' \
+  -d '{"source": "# Plan\n- research\n- build"}'</code></pre>
+  <table>
+    <tr><th>Endpoint</th><th>What it does</th></tr>
+    <tr><td><code>POST /render</code></td><td>SVG plus the parsed <code>model</code> graph and every share, embed, and image URL, as JSON. Also accepts GET with query params.</td></tr>
+    <tr><td><code>GET /svg?source=</code></td><td>The SVG directly, as <code>image/svg+xml</code>. Works in an <code>&lt;img src&gt;</code>.</td></tr>
+    <tr><td><code>GET /png?source=</code></td><td>The same as PNG.</td></tr>
+    <tr><td><code>POST /shorten</code></td><td>Trades a long <code>d</code> payload for a short id. Content-addressed, so the same map gives the same link back.</td></tr>
+    <tr><td><code>POST /transform</code></td><td>Give it <code>{"text": "..."}</code> or an image and its own AI writes the map for you.</td></tr>
+    <tr><td><code>POST /yt/transform</code></td><td>Give it <code>{"videoId": "..."}</code> and get a map of the video, with title, author, and a short share link.</td></tr>
+  </table>
+  <p class="note">Requests accept either a raw <code>source</code> string or an encoded
+     <code>d</code> share payload. <code>source</code> is capped at 20,000 characters.
+     Longer maps still render locally through the CLI.</p>
+
+  <h3>The model field</h3>
+  <p>The reason to prefer <code>/render</code> over <code>/svg</code> in a pipeline: you
+     get the graph back, not just a picture of it.</p>
+  <pre><code>{
+  "svg": "&lt;svg …&gt;",
+  "model": {
+    "layout": "curved", "direction": "LR",
+    "nodes": [{ "id": "n0", "label": "Plan", "shape": "root" }],
+    "edges": [{ "from": "n0", "to": "n1" }]
+  },
+  "sharePageUrl": "…", "embedCode": "…", "pngUrl": "…"
+}</code></pre>
+
+  <h2>The grammar, briefly</h2>
+  <p>A Markdown outline is the default and handles most cases. Exactly one
+     <code># Title</code> on the first line, then headings and <code>-</code> bullets
+     at two-space indents:</p>
+  <pre><code># Remote Work Playbook
+
+## Communication
+### Async first
+- Write decisions down
+- Default to public channels
+
+## Tools
+- Shared docs
+- One place for tasks</code></pre>
+  <p>For processes with real branching and cycles, use the Mermaid flowchart subset:</p>
+  <pre><code>flowchart LR
+a[Draft] --&gt; b{Review}
+b --&gt; c[Ship]
+b --&gt; a</code></pre>
+  <p class="note">This is a deliberately minimal subset. Chained edges, edge labels,
+     dashed arrows, subgraphs, and <code>classDef</code> are not supported, so most
+     full-Mermaid documents will not validate. Always run <code>validate</code>.</p>
+  <p>The complete grammar, URL shapes, and worked examples live in one plain-text file
+     built for LLMs: <a href="/llms-full.txt">llms-full.txt</a>. There is also a short
+     index at <a href="/llms.txt">llms.txt</a> and a human-facing
+     <a href="/#/docs">syntax reference</a>.</p>
+
+  <h2>Open source</h2>
+  <p>MIT licensed, all the way down. The renderer, the editor, the skill, and this page
+     are in
+     <a href="https://github.com/productscalexyz/mindmaply" target="_blank" rel="noreferrer">one repository</a>,
+     and the library is on npm as
+     <a href="https://www.npmjs.com/package/mindmaply-core" target="_blank" rel="noreferrer">mindmaply-core</a>.
+     Self-hosting? Point the CLI elsewhere with <code>--base</code> and
+     <code>--api-base</code>.</p>
+
+  <footer>
+    <a href="/">mindmaply.app</a>
+    <a href="/#/editor">Editor</a>
+    <a href="/#/docs">Docs</a>
+    <a href="/llms.txt">llms.txt</a>
+    <a href="https://github.com/productscalexyz/mindmaply" target="_blank" rel="noreferrer">GitHub</a>
+  </footer>
+</div>
+</body>
+</html>
