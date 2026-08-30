@@ -447,6 +447,10 @@ body {
   background:#fff; color:var(--brand); border:1px solid var(--bd2);
 }
 .landing-cta-ghost:hover { background:#fff; border-color:var(--brand); }
+/* CTAs and headings that carry the Chrome mark: keep logo and label on one
+   baseline. Must follow .landing-cta, which sets display:inline-block. */
+.landing-cta-icon { display:inline-flex; align-items:center; gap:9px; }
+.landing-ext-h3 { display:flex; align-items:center; justify-content:center; gap:7px; }
 .landing-hero {
   text-align:center; padding:72px 24px 48px;
   max-width:760px; margin:0 auto;
