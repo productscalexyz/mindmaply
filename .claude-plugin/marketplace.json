@@ -1,0 +1,28 @@
+{
+  "name": "mindmaply",
+  "owner": {
+    "name": "productscalexyz",
+    "url": "https://github.com/productscalexyz"
+  },
+  "description": "Mind maps, org charts, and flowcharts as text. The Mindmaply agent skill and its renderer.",
+  "plugins": [
+    {
+      "name": "mindmaply",
+      "source": "./",
+      "displayName": "Mindmaply",
+      "description": "Build, validate, and share mind maps, org charts, and flowcharts as polished SVG.",
+      "version": "0.3.0",
+      "homepage": "https://mindmaply.app/agents/",
+      "repository": "https://github.com/productscalexyz/mindmaply",
+      "license": "MIT",
+      "category": "productivity",
+      "tags": [
+        "mindmap",
+        "diagram",
+        "flowchart",
+        "svg",
+        "visualization"
+      ]
+    }
+  ]
+}

@@ -42,22 +42,21 @@ The engine knows nothing about the app; the app depends on the engine via the wo
 
 ## Use the library
 
-`mindmaply-core` isn't on npm yet — build it from this repo and consume it via
-the workspace (or a local `file:`/`pnpm link`):
-
 ```bash
-pnpm install && pnpm --filter mindmaply-core build
+npm i mindmaply-core
 ```
+
+Or straight from this repo via the workspace (`pnpm install && pnpm --filter mindmaply-core build`).
 
 ```ts
 import { render, renderMarkdown } from 'mindmaply-core'
 
 const svg = render(`flowchart LR
-  root((Topic)):::root --> A[Idea A]:::b1
-  root --> B[Idea B]:::b2
-  classDef root fill:#FFFFFF,stroke:#1E293B,stroke-width:1.5px
-  classDef b1   fill:#4B96E633,stroke:#4B96E6,stroke-width:2px
-  classDef b2   fill:#B355D033,stroke:#B355D0,stroke-width:2px`)
+  root((Topic)) --> A[Idea A]
+  root --> B[Idea B]
+  style root fill:#FFFFFF,stroke:#1E293B
+  style A fill:#4B96E633,stroke:#4B96E6
+  style B fill:#B355D033,stroke:#B355D0`)
 
 // or from a Markdown outline
 const svg2 = renderMarkdown(`# Topic
@@ -66,6 +65,31 @@ const svg2 = renderMarkdown(`# Topic
 ```
 
 Full API in the [core package README](./packages/core/README.md).
+
+There is also a CLI:
+
+```bash
+printf '# Plan\n- research\n- build\n' | npx -y mindmaply-core render -o plan.svg
+```
+
+## Use with AI agents
+
+This repo ships an [Agent Skill](https://agentskills.io) that teaches AI
+assistants to create, validate, render, and share mind maps with
+`mindmaply-core`. One command installs it into every SKILL.md-compatible agent
+detected on your machine (Claude Code, Codex, Cursor, Windsurf, Copilot,
+Gemini, and more):
+
+```bash
+npx skills add productscalexyz/mindmaply
+```
+
+Or install manually by copying [`skills/mindmaply`](./skills/mindmaply) into
+your agent's skills directory: `.claude/skills/` (Claude Code),
+`~/.agents/skills/` (Codex), `.cursor/skills/` (Cursor), `.github/skills/`
+(Copilot). For claude.ai, zip the `skills/mindmaply` folder and upload it under
+Settings > Skills. No build step is needed; the skill drives the published npm
+package via `npx`.
 
 ## Develop
 

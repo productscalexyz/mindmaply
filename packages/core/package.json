@@ -1,12 +1,19 @@
 {
   "name": "mindmaply-core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
-  "engines": { "node": ">=18" },
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "mindmaply": "./dist/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -17,16 +24,17 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "build": "tsup src/index.ts --format esm,cjs --dts --clean"
+    "build": "tsup"
   },
   "dependencies": {
     "d3-hierarchy": "^3.1.2",
     "lz-string": "^1.5.0"
   },
   "devDependencies": {
-    "typescript": "^5.4.0",
-    "vitest": "^1.6.0",
     "@types/d3-hierarchy": "^3.1.7",
-    "tsup": "^8.1.0"
+    "@types/node": "^18.19.130",
+    "tsup": "^8.1.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
   }
 }

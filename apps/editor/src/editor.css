@@ -562,6 +562,42 @@ body {
 }
 .landing-yt .landing-cta { margin-top:28px; }
 
+.landing-agents {
+  max-width:780px; margin:0 auto 80px; padding:0 24px; text-align:center;
+}
+.landing-agents h2 { font-size:24px; font-weight:800; letter-spacing:-.4px; margin-bottom:12px; }
+.landing-agents-intro {
+  color:var(--tx2); font-size:16px; line-height:1.7;
+  max-width:620px; margin:0 auto 26px;
+}
+/* The command is the point of the section, so it reads as a terminal line. */
+.landing-agents-cmd {
+  display:inline-block; background:var(--white); border:1px solid var(--bd2);
+  border-radius:12px; padding:14px 22px; box-shadow:0 8px 28px rgba(0,0,0,.06);
+  max-width:100%; overflow-x:auto;
+}
+.landing-agents-cmd code {
+  font-family:var(--fm); font-size:15px; color:var(--tx); white-space:nowrap;
+}
+.landing-agents-cmd code::before { content:'$ '; color:var(--brand); }
+.landing-agents-tools {
+  list-style:none; padding:0; margin:22px 0 0;
+  display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+}
+.landing-agents-tools li {
+  border:1px solid var(--bd2); border-radius:999px; padding:5px 14px;
+  font-size:13.5px; color:var(--tx2); background:var(--white);
+}
+.landing-agents-alt {
+  color:var(--tx3); font-size:14.5px; line-height:1.7;
+  max-width:600px; margin:26px auto 0;
+}
+.landing-agents-alt code {
+  font-family:var(--fm); font-size:13px;
+  background:rgba(0,0,0,.07); padding:2px 6px; border-radius:4px; color:var(--tx2);
+}
+.landing-agents-cta { margin-top:28px; }
+
 .landing-oss {
   max-width:680px; margin:0 auto 80px; padding:0 24px; text-align:center;
 }
@@ -621,6 +657,8 @@ body {
   .landing-trio-grid { grid-template-columns:1fr; }
   .landing-anywhere-grid { grid-template-columns:1fr; }
   .landing-anywhere-shots { grid-template-columns:1fr; }
+  .landing-agents-cmd { padding:12px 16px; }
+  .landing-agents-cmd code { font-size:13px; }
   .landing-timeline { grid-template-columns:1fr; gap:28px; }
   .landing-timeline::before { display:none; }
 }

@@ -95,6 +95,7 @@ export default function Landing() {
         <Brand />
         <div className="landing-nav-links">
           <Link to="/docs" className="docs-link">Docs</Link>
+          <a href="/agents/" className="docs-link">Agents</a>
           <a href="https://github.com/productscalexyz/mindmaply" className="docs-link" target="_blank" rel="noreferrer">GitHub</a>
           <Link to="/editor" className="landing-cta landing-cta-sm">Open Editor</Link>
         </div>
@@ -264,6 +265,31 @@ export default function Landing() {
         </a>
       </section>
 
+      <section className="landing-agents">
+        <h2>Your AI already knows how to use this</h2>
+        <p className="landing-agents-intro">
+          Mind maps as text are a format an agent can actually write. One command teaches
+          Claude Code, Codex, Cursor, and the rest to build a map, check it, and hand you
+          back a link.
+        </p>
+        <div className="landing-agents-cmd">
+          <code>npx skills add productscalexyz/mindmaply</code>
+        </div>
+        <ul className="landing-agents-tools">
+          <li>Claude Code</li>
+          <li>Codex</li>
+          <li>Cursor</li>
+          <li>Windsurf</li>
+          <li>Copilot</li>
+          <li>Gemini</li>
+        </ul>
+        <p className="landing-agents-alt">
+          No skill? <code>npx mindmaply-core render notes.md -o map.svg</code> works in any
+          shell, and the HTTP API returns the diagram plus its parsed node graph as JSON.
+        </p>
+        <a href="/agents/" className="landing-cta landing-agents-cta">Read the agent docs →</a>
+      </section>
+
       <section className="landing-oss">
         <h2>Free and open source, all the way down</h2>
         <p>
@@ -293,6 +319,7 @@ export default function Landing() {
         <div className="landing-nav-links">
           <Link to="/editor" className="docs-link">Editor</Link>
           <Link to="/docs" className="docs-link">Docs</Link>
+          <a href="/agents/" className="docs-link">Agents</a>
           <a href="https://github.com/productscalexyz/mindmaply" className="docs-link" target="_blank" rel="noreferrer">GitHub</a>
           <a href="https://github.com/productscalexyz/mindmaply/blob/main/LICENSE" className="docs-link" target="_blank" rel="noreferrer">MIT License</a>
           <a href="/privacy/" className="docs-link">Privacy</a>
