@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Only real paths belong here. The editor is hash-routed, so /#/editor,
+       /#/docs and /#/embed are the same URL as / to a crawler: adding them
+       would just make Search Console report duplicates. -->
   <url>
     <loc>https://mindmaply.app/</loc>
+    <lastmod>2026-08-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://mindmaply.app/privacy/</loc>
+    <lastmod>2026-08-28</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
