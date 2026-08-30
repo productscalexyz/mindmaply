@@ -1,0 +1,29 @@
+# Mindmaply
+
+> Mindmaply turns a Markdown outline or a Mermaid flowchart into a polished SVG mind map, org chart, or process diagram. The same text always produces the same diagram, so an agent can write a mind map the way it writes code: no canvas to drag, no layout to decide. Free and open source, MIT licensed.
+
+Three ways to use it from an agent, richest first:
+
+- Install the Agent Skill: `npx skills add productscalexyz/mindmaply`. Works in Claude Code, Codex, Cursor, Windsurf, Copilot, and Gemini. Teaches the grammar, the quality bar, and the render/validate/share workflow.
+- Call the CLI: `npx -y mindmaply-core render map.md -o map.svg`. Commands are render, validate, share, convert. Rendering and validation run fully offline.
+- Call the HTTP API: `POST https://api.mindmaply.app/render` with `{"source": "..."}`. Returns the SVG, a parsed `model` graph of nodes and edges, and every share, embed, and image URL.
+
+## Docs
+
+- [Agent and LLM guide](https://mindmaply.app/agents/): install steps for each tool, the CLI reference, and the full HTTP API.
+- [Full reference](https://mindmaply.app/llms-full.txt): the complete input grammar, URL shapes, and worked examples in one plain-text file.
+- [Syntax docs](https://mindmaply.app/#/docs): the human-facing grammar reference.
+- [The Agent Skill itself](https://github.com/productscalexyz/mindmaply/tree/main/skills/mindmaply): SKILL.md plus its reference files.
+
+## Reference
+
+- [Markdown grammar](https://github.com/productscalexyz/mindmaply/blob/main/skills/mindmaply/references/markdown-grammar.md): one `# Title`, then headings and `- ` bullets. The default choice.
+- [Mermaid grammar](https://github.com/productscalexyz/mindmaply/blob/main/skills/mindmaply/references/mermaid-grammar.md): a deliberately minimal `flowchart` and `mindmap` subset. Most full-Mermaid documents will not validate.
+- [Share encoding](https://github.com/productscalexyz/mindmaply/blob/main/skills/mindmaply/references/share-encoding.md): how share, embed, and image URLs are built, and how to shorten them.
+- [Worked examples](https://github.com/productscalexyz/mindmaply/blob/main/skills/mindmaply/references/examples.md): five complete diagrams that validate.
+
+## Source
+
+- [GitHub](https://github.com/productscalexyz/mindmaply): the library, the editor, and the skill.
+- [mindmaply-core on npm](https://www.npmjs.com/package/mindmaply-core): the renderer and the `mindmaply` CLI.
+- [Editor](https://mindmaply.app/#/editor): write on the left, diagram on the right.
