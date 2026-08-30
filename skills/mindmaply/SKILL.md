@@ -1,6 +1,6 @@
 ---
 name: mindmaply
-description: Create, validate, render, and share mind maps, concept maps, org charts, and process flowcharts as polished SVG diagrams. Use when the user asks for a mind map, a diagram of ideas or topics, a visual outline or summary, an org chart, a process flow, or a shareable or embeddable diagram link. Takes Markdown outlines or Mermaid flowchart/mindmap source; renders locally via the mindmaply-core npm CLI (npx mindmaply-core) and produces share URLs, embed iframes, and SVG/PNG image links.
+description: Create, validate, render, and share mind maps, concept maps, org charts, flowcharts, and process diagrams as polished SVG. Use when the user asks for a mind map, a flowchart, a diagram of ideas or topics, a visual outline or summary, an org chart, a process flow, or a shareable or embeddable diagram link, and also when they ask to summarize or visualize an article, a document, a transcript, or a YouTube video as a diagram. Takes Markdown outlines or Mermaid flowchart/mindmap source; renders locally via the mindmaply-core npm CLI (npx mindmaply-core) and produces share URLs, embed iframes, and SVG/PNG image links.
 license: MIT (see the repository LICENSE file)
 compatibility: Requires Node.js 18+ with npx. Network access is needed on the first npx run (package download) and for share/PNG links to resolve (mindmaply.app, api.mindmaply.app). Rendering and validation themselves run fully offline.
 metadata:
@@ -28,8 +28,9 @@ The binary name after install is `mindmaply`. Commands: `render`, `validate`,
 2. Validate it: `npx -y mindmaply-core validate map.md`
    Invalid source exits 1 and prints `line N: message` for every bad line. Fix those lines and re-validate until it passes.
 3. Render it: `npx -y mindmaply-core render map.md -o map.svg`
-4. If the user wants a link, embed, or image URL: `npx -y mindmaply-core share map.md`
+4. If the user wants a link, embed, or image URL: `npx -y mindmaply-core share map.md --short`
    This prints JSON with `editorUrl` (opens in the live editor), `sharePageUrl` (paste in chat/social, unfurls with a preview), `embedUrl` + `embedCode` (iframe), `svgUrl` + `imgCode` (static image), and `pngUrl`.
+   `--short` swaps `sharePageUrl` for a tidy `mindmaply.app/s/<id>` link instead of one carrying the whole encoded map. It needs network; without it, or if the call fails, you still get the long link. Prefer `--short` whenever you are handing the URL to a person.
 
 Give the user the SVG file and, when sharing was asked for, the `sharePageUrl` and `embedCode`.
 
@@ -88,6 +89,7 @@ mindmaply render   [file] [--format markdown|mermaid] [--direction LR|TD]
                           [--edge-style curved|straight] [-o out.svg]
 mindmaply validate [file] [--format ...]        # exit 1 + line errors if invalid
 mindmaply share    [file] [--format ...] [--direction LR|TD] [--edge-style ...]
+                          [--short]                     # short mindmaply.app/s/<id> link
 mindmaply convert  [file] --to markdown|mermaid
 ```
 
@@ -99,6 +101,6 @@ straight.
 ## Alternatives to the CLI
 
 - Library: `npm i mindmaply-core`, then `render(source)` / `renderMarkdown(source)` return SVG strings.
-- HTTP: `POST https://api.mindmaply.app/render` with `{"source": "..."}` returns SVG plus every share artifact as JSON; `GET /svg?source=...` and `GET /png?source=...` return images directly. `POST /transform` with `{"text": "..."}` has the API's own AI build the map from raw prose.
+- HTTP: `POST https://api.mindmaply.app/render` with `{"source": "..."}` returns SVG plus every share artifact as JSON; `GET /svg?source=...` and `GET /png?source=...` return images directly. `POST /transform` with `{"text": "..."}` (or `{"image": {"base64": "...", "mimeType": "..."}}`) has the API's own AI build the map from raw prose or a picture. `POST /yt/transform` with `{"videoId": "..."}` does the same for a YouTube video, returning `title`, `author`, the generated `source`, and a short map-first `sharePageUrl`.
 - Share URL mechanics (for building links without the CLI): [references/share-encoding.md](references/share-encoding.md)
 - Worked examples of good maps: [references/examples.md](references/examples.md)

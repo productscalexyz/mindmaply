@@ -67,6 +67,17 @@ describe('cli', () => {
     expect(payload?.direction).toBe('TD')
   })
 
+  // --short is best-effort: point it at a dead port and it must still succeed,
+  // falling back to the long link rather than failing the whole command.
+  it('share --short falls back to the long link when the API is unreachable', () => {
+    const { stdout, code } = run(['share', '--short', '--api-base', 'http://127.0.0.1:9'], MARKDOWN)
+    expect(code).toBe(0)
+    const out = JSON.parse(stdout)
+    expect(out.sharePageUrl).toContain('https://mindmaply.app/s/')
+    const d = out.sharePageUrl.split('/s/')[1]
+    expect(decodeShare(d)?.source).toBe(MARKDOWN)
+  })
+
   it('converts mermaid to a markdown outline', () => {
     const { stdout, code } = run(['convert', '--to', 'markdown'], FLOWCHART)
     expect(code).toBe(0)

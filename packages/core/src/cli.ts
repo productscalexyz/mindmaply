@@ -27,6 +27,7 @@ interface Opts {
   to?: Format
   base?: string
   apiBase?: string
+  short?: boolean
 }
 
 const HELP = `mindmaply <command> [file] [options]
@@ -48,6 +49,7 @@ Options:
   --to <markdown|mermaid>          Target format for convert
   --base <url>                     Site base for share links (default ${SITE_BASE})
   --api-base <url>                 API base for image links (default ${API_BASE})
+  --short                          share: swap in a short mindmaply.app/s/<id> link
   -h, --help                       Show this help
   -V, --version                    Print the package version
 
@@ -97,6 +99,9 @@ function parseArgs(argv: string[]): { command: string; opts: Opts } {
         break
       case '--api-base':
         opts.apiBase = expectValue(arg, argv[++i])
+        break
+      case '--short':
+        opts.short = true
         break
       default:
         if (arg.startsWith('-') && arg !== '-') fail(`Unknown option: ${arg}\n\n${HELP}`)
@@ -148,7 +153,26 @@ function cmdValidate(source: string, format: Format): void {
   process.exit(1)
 }
 
-function cmdShare(source: string, format: Format, opts: Opts): void {
+// Trade the long lz-string payload for a short KV-backed id via the API.
+// Best-effort: any failure falls back to the long link rather than erroring,
+// so `share --short` still produces a usable result offline.
+async function shortenLanding(enc: string, apiBase: string, base: string): Promise<string | undefined> {
+  try {
+    const res = await fetch(`${apiBase}/shorten`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ d: enc }),
+    })
+    if (!res.ok) return undefined
+    const body = (await res.json()) as { id?: string; url?: string }
+    if (body.url) return body.url
+    return body.id ? `${base}s/${body.id}` : undefined
+  } catch {
+    return undefined
+  }
+}
+
+async function cmdShare(source: string, format: Format, opts: Opts): Promise<void> {
   const payload: SharePayload = {
     v: 1,
     source,
@@ -161,6 +185,8 @@ function cmdShare(source: string, format: Format, opts: Opts): void {
   const enc = encodeShare(payload)
   const embedUrl = buildEmbedUrl(payload, base)
   const svgUrl = `${apiBase}/svg?d=${enc}`
+  const longLanding = buildShareLandingUrl(payload, base)
+  const sharePageUrl = opts.short ? ((await shortenLanding(enc, apiBase, base)) ?? longLanding) : longLanding
   process.stdout.write(
     JSON.stringify(
       {
@@ -168,7 +194,7 @@ function cmdShare(source: string, format: Format, opts: Opts): void {
         direction: payload.direction,
         editorUrl: buildShareUrl(payload, base),
         // The link to paste in chat/social: unfurls with a preview image.
-        sharePageUrl: buildShareLandingUrl(payload, base),
+        sharePageUrl,
         embedUrl,
         embedCode: `<iframe src="${embedUrl}" width="800" height="500" style="border:0;border-radius:12px" loading="lazy"></iframe>`,
         svgUrl,
@@ -209,7 +235,7 @@ async function main(): Promise<void> {
 
   if (command === 'render') cmdRender(source, format, opts)
   else if (command === 'validate') cmdValidate(source, format)
-  else if (command === 'share') cmdShare(source, format, opts)
+  else if (command === 'share') await cmdShare(source, format, opts)
   else cmdConvert(source, format, opts)
 }
 
