@@ -34,6 +34,22 @@ const ROADMAP_SOURCE = `flowchart LR
   Later --> UML["UML Sequence"]
   Later --> More["...and more"]`
 
+// The Chrome mark, drawn inline so the page pulls no external asset: three
+// 120 degree wedges (red on top, yellow lower right, green lower left) under
+// the white ring and blue core. Purely a signal of where the extension
+// installs, next to text that always names Chrome.
+function ChromeMark({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+      <path fill="#EA4335" d="M24 24 L13 4.95 A 22 22 0 0 1 46 24 Z" />
+      <path fill="#FBBC05" d="M24 24 L46 24 A 22 22 0 0 1 13 43.05 Z" />
+      <path fill="#34A853" d="M24 24 L13 43.05 A 22 22 0 0 1 13 4.95 Z" />
+      <circle cx="24" cy="24" r="12" fill="#fff" />
+      <circle cx="24" cy="24" r="9.5" fill="#4285F4" />
+    </svg>
+  )
+}
+
 function Brand() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -102,11 +118,12 @@ export default function Landing() {
           <Link to="/editor" className="landing-cta">Open Editor →</Link>
           <a
             href={CHROME_EXTENSION_URL}
-            className="landing-cta landing-cta-ghost"
+            className="landing-cta landing-cta-ghost landing-cta-icon"
             target="_blank"
             rel="noreferrer"
           >
-            YouTube → mind map extension
+            <ChromeMark />
+            Get the Chrome extension
           </a>
         </div>
       </header>
@@ -179,12 +196,15 @@ export default function Landing() {
             <p>Drop an interactive iframe into any page. The demo above is one.</p>
           </div>
           <div className="landing-anywhere-item">
-            <h3>YouTube</h3>
+            <h3 className="landing-ext-h3">
+              <ChromeMark size={17} />
+              Chrome extension
+            </h3>
             <p>
-              Turn any video into a mind map with the{' '}
+              Turn any YouTube video into a mind map, straight from the player.{' '}
               <a href={CHROME_EXTENSION_URL} className="docs-link" target="_blank" rel="noreferrer">
-                Chrome extension
-              </a>.
+                Add it to Chrome →
+              </a>
             </p>
           </div>
         </div>
@@ -235,10 +255,11 @@ export default function Landing() {
         </div>
         <a
           href={CHROME_EXTENSION_URL}
-          className="landing-cta landing-yt-cta"
+          className="landing-cta landing-yt-cta landing-cta-icon"
           target="_blank"
           rel="noreferrer"
         >
+          <ChromeMark size={19} />
           Get the Chrome extension →
         </a>
       </section>
