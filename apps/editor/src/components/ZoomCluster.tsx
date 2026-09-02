@@ -19,16 +19,17 @@ export default function ZoomCluster({ zoom, onChange, onFit }: Props) {
       </button>
       <div className="zc-sep" />
       <button className="zc-fit" title="Fit mind map to view" onClick={onFit}>Fit</button>
-      <div className="zc-sep" />
-      <button className="zc-fit" onClick={() => onChange(0.5)}>50%</button>
+      {/* presets are a desktop nicety; pinch covers this on touch (hidden via .zc-preset) */}
+      <div className="zc-sep zc-preset" />
+      <button className="zc-fit zc-preset" onClick={() => onChange(0.5)}>50%</button>
       <button
-        className="zc-fit"
+        className="zc-fit zc-preset"
         style={{ color: 'var(--brand)', fontWeight: 600 }}
         onClick={() => onChange(1)}
       >
         100%
       </button>
-      <button className="zc-fit" onClick={() => onChange(1.5)}>150%</button>
+      <button className="zc-fit zc-preset" onClick={() => onChange(1.5)}>150%</button>
     </div>
   )
 }
