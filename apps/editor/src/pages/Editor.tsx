@@ -11,6 +11,7 @@ import { SAMPLES, getSampleSource, type SampleId, type Direction, type EdgeStyle
 import { diagramType, DIAGRAM_TYPE_COLORS } from '../diagram-type'
 import { clampZoom } from '../zoom'
 import { renderFromPayload, layoutFromPayload } from '../render'
+import { useIsMobile } from '../mobile'
 import EditorPanel from '../components/EditorPanel'
 import Canvas from '../components/Canvas'
 import ShareModal from '../components/ShareModal'
@@ -64,6 +65,10 @@ export default function Editor() {
   // hiding the markdown for the next viewer too.
   const mapFirst = useRef(openedWithMapView()).current
   const [collapsed, setCollapsed] = useState(mapFirst)
+  // Phones and iPads always open on the map: the source panel becomes a
+  // bottom sheet behind an Edit button, whatever the link said.
+  const isMobile = useIsMobile()
+  const [sheetOpen, setSheetOpen] = useState(false)
   const [svg, setSvg] = useState('')
   // Markdown is the primary editing format — samples are stored as Mermaid, so convert on load
   const [source, setSource] = useState(
@@ -135,6 +140,7 @@ export default function Editor() {
         // LR maps grow rightward from a left root, so a vertical rail on the
         // left mirrors the map; TD maps keep the horizontal top row.
         vertical: dir === 'LR',
+        root: { x: root.x, y: root.y },
         items: root.children.map((c) => ({
           id: c.id,
           label: c.label,
@@ -144,7 +150,7 @@ export default function Editor() {
         })),
       }
     } catch {
-      return { vertical: false, items: [] }
+      return { vertical: false, root: undefined, items: [] }
     }
   }, [source, format, direction, edgeStyle, sample])
 
@@ -237,25 +243,30 @@ export default function Editor() {
     document.addEventListener('mouseup', onUp)
   }, [panelWidth])
 
+  const panel = (
+    <EditorPanel
+      sample={sample}
+      onSampleChange={handleSampleChange}
+      direction={direction}
+      onDirectionChange={handleDirectionChange}
+      edgeStyle={edgeStyle}
+      onEdgeStyleChange={setEdgeStyle}
+      source={source}
+      onSourceChange={setSource}
+      format={format}
+      onFormatChange={handleFormatChange}
+      errors={errors}
+      // In the sheet the panel is sized by CSS, not by the desktop divider.
+      width={isMobile ? undefined : collapsed ? 0 : panelWidth}
+    />
+  )
+
   return (
     <>
-      <div className="app">
+      <div className={`app${isMobile ? ' is-mobile' : ''}`}>
         <div className="body">
-          <EditorPanel
-            sample={sample}
-            onSampleChange={handleSampleChange}
-            direction={direction}
-            onDirectionChange={handleDirectionChange}
-            edgeStyle={edgeStyle}
-            onEdgeStyleChange={setEdgeStyle}
-            source={source}
-            onSourceChange={setSource}
-            format={format}
-            onFormatChange={handleFormatChange}
-            errors={errors}
-            width={collapsed ? 0 : panelWidth}
-          />
-          {!collapsed && (
+          {!isMobile && panel}
+          {!isMobile && !collapsed && (
             <div className="resize-handle" onMouseDown={onResizeStart}>
               <button
                 className="collapse-btn"
@@ -266,7 +277,7 @@ export default function Editor() {
               </button>
             </div>
           )}
-          {collapsed && (
+          {!isMobile && collapsed && (
             <button
               className="expand-tab"
               onClick={() => setCollapsed(false)}
@@ -284,7 +295,26 @@ export default function Editor() {
             onExport={() => setExportOpen(true)}
             chips={chips.items}
             chipsVertical={chips.vertical}
+            mobile={isMobile}
+            onEdit={() => setSheetOpen(true)}
+            focus={chips.root}
           />
+          {isMobile && (
+            <>
+              {sheetOpen && <div className="sheet-backdrop" onClick={() => setSheetOpen(false)} />}
+              {/* Stays mounted so it can slide; CSS hides it (visibility) when closed. */}
+              <div className={`sheet${sheetOpen ? ' open' : ''}`} aria-hidden={!sheetOpen}>
+                <div className="sheet-hd">
+                  <span className="sheet-grip" aria-hidden="true" />
+                  <span className="sheet-title">Source</span>
+                  <button className="sheet-done" onClick={() => setSheetOpen(false)}>
+                    Done
+                  </button>
+                </div>
+                {panel}
+              </div>
+            </>
+          )}
         </div>
       </div>
       {shareOpen && (

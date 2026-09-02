@@ -1,5 +1,6 @@
-// Low enough that fit-to-view can shrink large/deep diagrams fully into the canvas
-export const ZOOM_MIN = 0.1
+// Low enough that fit-to-view can shrink large/deep diagrams fully into the
+// canvas, including on a phone, where the canvas is a few hundred px wide.
+export const ZOOM_MIN = 0.05
 export const ZOOM_MAX = 4
 
 export function clampZoom(z: number): number {
