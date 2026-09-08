@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from 'react'
+import { useRef, useEffect, useLayoutEffect, useCallback, useState } from 'react'
 import ZoomCluster from './ZoomCluster'
 import { clampZoom } from '../zoom'
 import { distance, midpoint, panForZoom, type Point } from '../gesture'
@@ -51,17 +51,40 @@ function parseViewBox(svgStr: string): [number, number, number, number] | null {
   return parts.length >= 4 ? (parts.slice(0, 4) as [number, number, number, number]) : null
 }
 
+// The room actually left for the diagram: .diagram-viewport covers the canvas
+// and its padding is what keeps the map clear of the floating controls. Read
+// that padding rather than hardcoding it, since it differs per context (the
+// editor, a phone, a chrome-less embed).
+function fitBox(el: HTMLDivElement): { w: number; h: number; dy: number } {
+  const vp = el.querySelector<HTMLElement>('.diagram-viewport')
+  if (!vp) return { w: el.clientWidth, h: el.clientHeight, dy: 0 }
+  const cs = getComputedStyle(vp)
+  const top = parseFloat(cs.paddingTop) || 0
+  const bottom = parseFloat(cs.paddingBottom) || 0
+  return {
+    w: vp.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0),
+    h: vp.clientHeight - top - bottom,
+    // Uneven vertical padding moves the viewport's centre; centring maths has
+    // to add that half-difference back.
+    dy: (bottom - top) / 2,
+  }
+}
+
 function computeFitZoom(svgStr: string, el: HTMLDivElement): number {
   const match = svgStr.match(/viewBox="([^"]+)"/)
   if (!match) return 1
   const parts = match[1].trim().split(/\s+/).map(Number)
   if (parts.length < 4) return 1
   const [, , diagramW, diagramH] = parts
-  // diagram-viewport has padding: 48px 32px 56px
-  const canvasW = el.clientWidth - 64   // 32px each side
-  const canvasH = el.clientHeight - 104 // 48px top + 56px bottom
-  if (canvasW <= 0 || canvasH <= 0 || diagramW <= 0 || diagramH <= 0) return 1
-  return clampZoom(Math.min(canvasW / diagramW, canvasH / diagramH))
+  if (diagramW <= 0 || diagramH <= 0) return 1
+  const box = fitBox(el)
+  // An axis we cannot measure yet (a frame laid out at zero height, a canvas
+  // shorter than its own padding) must not fall back to 1: that would leave a
+  // big map at natural size, spilling out of the frame. Fit on the other axis.
+  const byWidth = box.w > 0 ? box.w / diagramW : Infinity
+  const byHeight = box.h > 0 ? box.h / diagramH : Infinity
+  const fit = Math.min(byWidth, byHeight)
+  return Number.isFinite(fit) ? clampZoom(fit) : 1
 }
 
 // One in-flight gesture. `pan` follows a single pointer; `pinch` scales about
@@ -111,7 +134,9 @@ export default function Canvas({
   // Auto-fit whenever SVG changes (edits, direction/sample/format switches).
   // On a phone a big map fits at a thumbnail scale nobody can read, so it
   // opens on the root at a legible zoom instead (same maths as centerOnChip).
-  useEffect(() => {
+  // Before paint, not after, so a big map never flashes at natural size on
+  // the way to its fitted scale.
+  useLayoutEffect(() => {
     if (!svg || !canvasRef.current) return
     setActiveChip(null)
     const fit = computeFitZoom(svg, canvasRef.current)
@@ -122,7 +147,8 @@ export default function Canvas({
       // An LR map grows to the right of its root, so park the root in the
       // left third rather than the middle; TD maps hang below theirs.
       const shiftX = chipsVertical ? canvasRef.current.clientWidth * 0.22 : 0
-      setPan({ x: (minX + w / 2 - focus.x) * z - shiftX, y: (minY + h / 2 - focus.y) * z + 4 })
+      const { dy } = fitBox(canvasRef.current)
+      setPan({ x: (minX + w / 2 - focus.x) * z - shiftX, y: (minY + h / 2 - focus.y) * z + dy })
       onZoomChange(z)
       return
     }
@@ -162,8 +188,8 @@ export default function Canvas({
       // Zoom in to a readable level if the map is currently fitted-out tiny.
       const z = clampZoom(Math.max(zoom, 0.75))
       if (z !== zoom) onZoomChange(z)
-      // +4 compensates the viewport's asymmetric vertical padding (48/56).
-      setPan({ x: (cx - chip.x) * z, y: (cy - chip.y) * z + 4 })
+      const dy = canvasRef.current ? fitBox(canvasRef.current).dy : 0
+      setPan({ x: (cx - chip.x) * z, y: (cy - chip.y) * z + dy })
       setActiveChip(chip.id)
       // The mobile strip scrolls; bring the chosen chip into view.
       button.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
