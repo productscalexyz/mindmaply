@@ -4,6 +4,7 @@ import { render } from 'mindmaply-core'
 import { highlight } from '../highlight'
 import { buildEmbedUrl } from '../share'
 import { CHROME_EXTENSION_URL } from '../extension'
+import { NARROW_QUERY, useMediaQuery } from '../mobile'
 
 // The hero demo's content IS the value story — rendered live by mindmaply-core.
 const DEMO_SOURCE = `flowchart LR
@@ -20,6 +21,16 @@ const DEMO_SOURCE = `flowchart LR
   C --> C2["Share with just a URL"]
   D --> D1["No dragging, no aligning"]
   D --> D2["Mind map out, instantly"]`
+
+// The same story on a phone. A three-level map is ~820 units wide, and fitted
+// into a 356px frame its labels come out 6px tall, so the phone gets the four
+// pillars alone: complete, centred, and legible at the width it has.
+const MOBILE_DEMO_SOURCE = `flowchart LR
+  root["Mindmaply"]
+  root --> A["AI-native"]
+  root --> B["Beautiful"]
+  root --> C["No lock-in"]
+  root --> D["Instant"]`
 
 // The roadmap is itself a mindmaply diagram, rendered by the engine.
 const ROADMAP_SOURCE = `flowchart LR
@@ -71,14 +82,18 @@ function Brand() {
 
 export default function Landing() {
   // Safe for dangerouslySetInnerHTML: both strings derive from the static
-  // DEMO_SOURCE constant — highlight() HTML-escapes its input and render()
-  // emits our own SVG. No user input flows in.
-  const highlighted = useMemo(() => highlight(DEMO_SOURCE, 'mermaid'), [])
+  // demo constants: highlight() HTML-escapes its input and render() emits our
+  // own SVG. No user input flows in.
+  // Code panel and map read the same source, so the "this text makes that map"
+  // claim holds on a phone too.
+  const narrow = useMediaQuery(NARROW_QUERY)
+  const demoSource = narrow ? MOBILE_DEMO_SOURCE : DEMO_SOURCE
+  const highlighted = useMemo(() => highlight(demoSource, 'mermaid'), [demoSource])
   // The demo canvas is the real embed view in an iframe — the same snippet the
   // Share modal hands out, so the demo doubles as proof of the embed feature.
   const embedSrc = useMemo(
-    () => buildEmbedUrl({ v: 1, source: DEMO_SOURCE, format: 'mermaid', direction: 'LR' }),
-    [],
+    () => buildEmbedUrl({ v: 1, source: demoSource, format: 'mermaid', direction: 'LR' }),
+    [demoSource],
   )
   const roadmapSvg = useMemo(() => {
     try {
@@ -93,12 +108,14 @@ export default function Landing() {
     <div className="landing-page">
       <nav className="landing-nav">
         <Brand />
+        {/* The CTA is a sibling of the link row, not part of it: on a phone the
+            nav wraps to two lines and the button rides up beside the brand. */}
         <div className="landing-nav-links">
           <Link to="/docs" className="docs-link">Docs</Link>
           <a href="/agents/" className="docs-link">Agents</a>
           <a href="https://github.com/productscalexyz/mindmaply" className="docs-link" target="_blank" rel="noreferrer">GitHub</a>
-          <Link to="/editor" className="landing-cta landing-cta-sm">Open Editor</Link>
         </div>
+        <Link to="/editor" className="landing-cta landing-cta-sm">Open Editor</Link>
       </nav>
 
       <header className="landing-hero">

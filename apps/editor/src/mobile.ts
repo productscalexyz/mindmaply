@@ -7,15 +7,24 @@ import { useEffect, useState } from 'react'
 // laptop still has a mouse, so it keeps the desktop editor.
 export const MOBILE_QUERY = '(max-width: 768px), ((any-pointer: coarse) and (any-hover: none))'
 
-export function useIsMobile(): boolean {
-  const [mobile, setMobile] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia(MOBILE_QUERY).matches,
+// Just the width half, for layout that has to agree with a CSS breakpoint
+// rather than with the input device (a landscape tablet is touch but wide).
+export const NARROW_QUERY = '(max-width: 768px)'
+
+export function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia(query).matches,
   )
   useEffect(() => {
-    const mq = window.matchMedia(MOBILE_QUERY)
-    const onChange = () => setMobile(mq.matches)
+    const mq = window.matchMedia(query)
+    const onChange = () => setMatches(mq.matches)
+    setMatches(mq.matches)
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)
-  }, [])
-  return mobile
+  }, [query])
+  return matches
+}
+
+export function useIsMobile(): boolean {
+  return useMediaQuery(MOBILE_QUERY)
 }

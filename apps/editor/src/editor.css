@@ -499,16 +499,22 @@ body {
 }
 .landing-nav {
   display:flex; align-items:center; justify-content:space-between;
+  gap:16px;
   padding:14px 28px;
   position:sticky; top:0; z-index:20;
   background:rgba(244,245,247,.85); backdrop-filter:blur(8px);
   border-bottom:1px solid var(--bd);
 }
-.landing-nav-links { display:flex; align-items:center; gap:20px; }
+/* margin-left:auto keeps the row hard right now that the nav CTA is a sibling
+   rather than a child; wrapping is what saves the six-link footer row. */
+.landing-nav-links {
+  display:flex; align-items:center; flex-wrap:wrap; gap:10px 20px;
+  margin-left:auto;
+}
 .landing-cta {
   padding:12px 28px; background:var(--brand); color:white;
   border-radius:8px; text-decoration:none; font-weight:600; font-size:15px;
-  transition:background .15s; display:inline-block;
+  transition:background .15s; display:inline-block; white-space:nowrap;
 }
 .landing-cta:hover { background:var(--brand-b); }
 .landing-cta-sm { padding:7px 16px; font-size:13px; border-radius:7px; }
@@ -714,23 +720,53 @@ body {
   flex-wrap:wrap; gap:16px;
 }
 @media (max-width:768px) {
-  .landing-nav { padding:12px 16px; }
-  .landing-nav-links { gap:12px; }
+  .landing-nav { padding:12px 16px; gap:12px; }
+  .landing-nav-links { gap:10px 14px; }
   .landing-demo { grid-template-columns:1fr; width:calc(100% - 32px); }
   /* chart first, editor second on mobile */
   .landing-demo-canvas { order:1; }
   .landing-demo-code { order:2; }
-  .landing-demo-embed { min-height:480px; }
-  .landing-demo-code pre { max-height:280px; }
+  /* Sized to the compact phone map (see MOBILE_DEMO_SOURCE) so the frame holds
+     the whole thing with no dead band above and below it. */
+  .landing-demo-embed { height:344px; min-height:0; }
+  /* The whole source, not a line cut in half: it is the value story. */
+  .landing-demo-code pre { max-height:none; }
   .landing-hero { padding:48px 20px 36px; }
   .landing-hero h1 { white-space:normal; }
   .landing-trio-grid { grid-template-columns:1fr; }
   .landing-anywhere-grid { grid-template-columns:1fr; }
   .landing-anywhere-shots { grid-template-columns:1fr; }
-  .landing-agents-cmd { padding:12px 16px; }
-  .landing-agents-cmd code { font-size:13px; }
+  /* 24px gutters cost the copy a word per line on a 360px phone. */
+  .landing-trio, .landing-anywhere, .landing-yt, .landing-agents,
+  .landing-oss, .landing-roadmap { padding:0 16px; }
+  /* The install command is one unbreakable token pair: size it to the gutter
+     it has left rather than leaving it to scroll a few characters. */
+  .landing-agents-cmd { padding:12px; }
+  .landing-agents-cmd code { font-size:12px; }
+  /* Fitted to 340px the roadmap's labels are 5px tall. Render it at a legible
+     width instead and let the reader swipe it (the box scrolls, not the page). */
+  .landing-roadmap-canvas {
+    padding:20px 0; justify-content:flex-start;
+    overflow-x:auto; scrollbar-width:none;
+  }
+  .landing-roadmap-canvas::-webkit-scrollbar { display:none; }
+  .landing-roadmap-canvas .landing-demo-svg { width:auto; flex-shrink:0; }
+  .landing-roadmap-canvas .landing-demo-svg svg { width:660px; max-width:none; }
+  .landing-footer { padding:24px 16px; }
+  .landing-footer .landing-nav-links {
+    width:100%; margin-left:0; justify-content:center; gap:10px 16px;
+  }
   .landing-timeline { grid-template-columns:1fr; gap:28px; }
   .landing-timeline::before { display:none; }
+}
+/* Below this the nav cannot hold brand + three links + button on one line, so
+   it wraps: brand and the button on top, the links as a second row. */
+@media (max-width:600px) {
+  .landing-nav { flex-wrap:wrap; gap:10px 12px; }
+  .landing-nav > .landing-cta-sm { order:1; margin-left:auto; }
+  .landing-nav > .landing-nav-links {
+    order:2; width:100%; margin-left:0; gap:8px 18px;
+  }
 }
 
 /* ─── Docs Page ──────────────────────────────────────────── */
@@ -1089,6 +1125,18 @@ body {
 /* ─── embed view (/embed, dropped into third-party iframes) ── */
 .embed-root { width:100vw; height:100vh; display:flex; }
 .embed-root .canvas { flex:1; }
+/* An embed has no toolbar and no chip rail, only the credit at the top and the
+   zoom cluster at the bottom: hand the map back the room the editor spends on
+   those, keeping just enough to clear the two. computeFitZoom reads this. */
+.embed-root .diagram-viewport { padding:38px 16px 52px; }
+/* An embed's viewport IS its iframe, so its own width says whether the full
+   cluster fits. Below this the presets go and the buttons grow to thumb size;
+   pinch and drag cover the rest. */
+@media (max-width:560px) {
+  .embed-root .zc-preset { display:none; }
+  .embed-root .zoom-cluster { padding:3px 6px; }
+  .embed-root .zc-btn { width:34px; height:34px; }
+}
 .embed-empty {
   width:100vw; height:100vh; display:flex; align-items:center; justify-content:center;
   font-family:var(--ui); font-size:14px; color:var(--tx3); background:var(--cv);
