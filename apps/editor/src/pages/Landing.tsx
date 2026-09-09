@@ -1,10 +1,16 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { render } from 'mindmaply-core'
+import { render, renderMarkdown } from 'mindmaply-core'
 import { highlight } from '../highlight'
 import { buildEmbedUrl } from '../share'
 import { CHROME_EXTENSION_URL } from '../extension'
 import { NARROW_QUERY, useMediaQuery } from '../mobile'
+import {
+  EXAMPLES,
+  exampleShareUrl,
+  exampleVideoUrl,
+  previewSource,
+} from '../examples/manifest'
 
 // The hero demo's content IS the value story — rendered live by mindmaply-core.
 const DEMO_SOURCE = `flowchart LR
@@ -103,6 +109,21 @@ export default function Landing() {
       return ''
     }
   }, [])
+  // Rendered here by the same engine the editor uses, so this section draws
+  // even if the API is down, and so crawlers get real markup (/svg on the API
+  // is disallowed in robots.txt). Depth-1 previews only: see previewSource.
+  const examplePreviews = useMemo(
+    () =>
+      EXAMPLES.map((example) => {
+        try {
+          return { example, svg: renderMarkdown(previewSource(example.source), { direction: 'LR' }) }
+        } catch (err) {
+          console.error('mindmaply-core render error:', err)
+          return { example, svg: '' }
+        }
+      }),
+    [],
+  )
 
   return (
     <div className="landing-page">
@@ -280,6 +301,56 @@ export default function Landing() {
           <ChromeMark size={19} />
           Get the Chrome extension →
         </a>
+      </section>
+
+      <section className="landing-examples">
+        <h2>Maps from real talks</h2>
+        <p className="landing-examples-intro">
+          Every one of these was generated from a YouTube talk by the extension, then
+          left exactly as it came out. Open one to pan, zoom and edit the real map.
+        </p>
+        <ul className="landing-examples-grid">
+          {examplePreviews.map(({ example, svg }) => {
+            const href = exampleShareUrl(example)
+            // The preview and text are one click target; the video credit is a
+            // sibling, because an <a> inside an <a> is not valid HTML.
+            const card = (
+              <>
+                <div className="landing-examples-canvas">
+                  {svg
+                    ? <div className="landing-demo-svg" dangerouslySetInnerHTML={{ __html: svg }} />
+                    : <span className="landing-demo-empty">map preview</span>}
+                </div>
+                <h3>{example.title}</h3>
+                <p>{example.blurb}</p>
+              </>
+            )
+            return (
+              <li key={example.slug}>
+                {href ? (
+                  <a className="landing-examples-card" href={href} target="_blank" rel="noreferrer">
+                    {card}
+                  </a>
+                ) : (
+                  /* No share base configured (local dev, or a fork): still show
+                     the map, just without a dead link. */
+                  <div className="landing-examples-card">{card}</div>
+                )}
+                <a
+                  className="landing-examples-src"
+                  href={exampleVideoUrl(example)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Watch the talk →
+                </a>
+              </li>
+            )
+          })}
+        </ul>
+        <p className="landing-examples-caption">
+          Each card shows the top level of its map. The full maps run 60 to 75 branches.
+        </p>
       </section>
 
       <section className="landing-agents">

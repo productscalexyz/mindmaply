@@ -638,6 +638,63 @@ body {
 }
 .landing-yt .landing-cta { margin-top:28px; }
 
+/* Real generated maps, as proof the YouTube flow above actually works. Sits
+   directly after it on purpose. */
+.landing-examples {
+  max-width:1000px; margin:0 auto 80px; padding:0 24px; text-align:center;
+}
+.landing-examples h2 { font-size:24px; font-weight:800; letter-spacing:-.4px; margin-bottom:12px; }
+.landing-examples-intro {
+  color:var(--tx2); font-size:16px; line-height:1.7;
+  max-width:640px; margin:0 auto 28px;
+}
+.landing-examples-grid {
+  list-style:none; padding:0; margin:0;
+  display:grid; grid-template-columns:1fr 1fr; gap:22px;
+}
+.landing-examples-grid > li { display:flex; flex-direction:column; min-width:0; }
+/* flex:1 so cards in a row match height despite blurbs wrapping to two or three
+   lines, which otherwise leaves the "Watch the talk" links on ragged baselines. */
+.landing-examples-card {
+  flex:1; text-align:left; text-decoration:none; color:inherit;
+  background:var(--white); border:1px solid var(--bd2); border-radius:16px;
+  padding:16px 18px 18px; box-shadow:0 12px 40px rgba(0,0,0,.08);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+a.landing-examples-card:hover {
+  transform:translateY(-2px); box-shadow:0 18px 50px rgba(0,0,0,.12);
+}
+/* Fixed height so cards line up despite previews ranging from square to 1.7:1;
+   the SVG scales inside rather than stretching. */
+.landing-examples-canvas {
+  position:relative; height:190px; margin-bottom:14px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:10px; overflow:hidden;
+}
+.landing-examples-canvas::before {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:radial-gradient(circle, rgba(0,0,0,.048) 1px, transparent 1px);
+  background-size:20px 20px;
+}
+.landing-examples-canvas .landing-demo-svg { width:auto; max-width:100%; }
+.landing-examples-canvas .landing-demo-svg svg {
+  width:auto; max-width:100%; height:auto; max-height:190px;
+}
+.landing-examples-card h3 {
+  font-size:15px; font-weight:700; margin:0 0 6px; line-height:1.4;
+}
+.landing-examples-card p {
+  color:var(--tx2); font-size:13.5px; line-height:1.6; margin:0;
+}
+.landing-examples-src {
+  align-self:flex-start; margin-top:10px;
+  color:var(--tx3); font-size:13px; text-decoration:none;
+}
+.landing-examples-src:hover { color:var(--brand); }
+.landing-examples-caption {
+  color:var(--tx3); font-size:13px; margin-top:22px;
+}
+
 .landing-agents {
   max-width:780px; margin:0 auto 80px; padding:0 24px; text-align:center;
 }
@@ -736,9 +793,15 @@ body {
   .landing-trio-grid { grid-template-columns:1fr; }
   .landing-anywhere-grid { grid-template-columns:1fr; }
   .landing-anywhere-shots { grid-template-columns:1fr; }
+  /* One card per row. The previews are trimmed to depth 1 (see previewSource),
+     so they stay legible at phone width and this section does NOT need the
+     sideways scroll .landing-roadmap-canvas falls back to. */
+  .landing-examples-grid { grid-template-columns:1fr; }
+  .landing-examples-canvas { height:170px; }
+  .landing-examples-canvas .landing-demo-svg svg { max-height:170px; }
   /* 24px gutters cost the copy a word per line on a 360px phone. */
   .landing-trio, .landing-anywhere, .landing-yt, .landing-agents,
-  .landing-oss, .landing-roadmap { padding:0 16px; }
+  .landing-oss, .landing-roadmap, .landing-examples { padding:0 16px; }
   /* The install command is one unbreakable token pair: size it to the gutter
      it has left rather than leaving it to scroll a few characters. */
   .landing-agents-cmd { padding:12px; }
